@@ -2,8 +2,8 @@ package net.baconeater.features.shaders;
 
 import net.minecraft.util.Identifier;
 
-public final class Resolver {
-    private Resolver() {}
+public final class ShaderResolver {
+    private ShaderResolver() {}
     /** "creeper" → minecraft:shaders/post/creeper.json ; "ns:name" → ns:shaders/post/name.json; full paths pass through. */
     public static Identifier toShaderPath(String input) {
         if (input == null) return null;

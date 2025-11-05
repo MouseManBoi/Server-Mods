@@ -8,8 +8,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 /** Maintains per-key objectives and sets THIS PLAYER'S score to 1 on press. */
-public final class ScoreHandler {
-    private ScoreHandler() {}
+public final class KeybindScoreHandler {
+    private KeybindScoreHandler() {}
 
     // Objectives EXACTLY as requested
     public static final String OBJ_TOGGLE = "customUniversal.ToggleTrigger"; // R

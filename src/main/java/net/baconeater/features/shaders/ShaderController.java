@@ -4,8 +4,8 @@ import net.baconeater.mixin.client.GameRendererAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 
-public final class Controller {
-    private Controller() {}
+public final class ShaderController {
+    private ShaderController() {}
 
     private static Identifier desired = null;   // null = off
     private static boolean failedOnce = false;

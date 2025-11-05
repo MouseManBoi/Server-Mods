@@ -2,8 +2,8 @@ package net.baconeater.features.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.baconeater.features.shaders.Resolver;
-import net.baconeater.features.shaders.payload.SelectS2C;
+import net.baconeater.features.shaders.ShaderResolver;
+import net.baconeater.features.shaders.payload.ShaderSelectS2C;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -30,7 +30,7 @@ public final class ShaderCommand {
                         .then(CommandManager.literal("enable")
                                 .then(CommandManager.argument("id", StringArgumentType.word())
                                         .executes(ctx -> {
-                                            Identifier id = Resolver.toShaderPath(StringArgumentType.getString(ctx, "id"));
+                                            Identifier id = ShaderResolver.toShaderPath(StringArgumentType.getString(ctx, "id"));
                                             if (id == null) { ctx.getSource().sendError(Text.literal("Invalid id")); return 0; }
                                             last = id; enabled = true; broadcast(ctx.getSource().getServer(), id);
                                             ctx.getSource().sendFeedback(() -> Text.literal("[shader] enabled: " + id), true);
@@ -51,7 +51,7 @@ public final class ShaderCommand {
                         .then(CommandManager.literal("toggle")
                                 .then(CommandManager.argument("id", StringArgumentType.word())
                                         .executes(ctx -> {
-                                            Identifier id = Resolver.toShaderPath(StringArgumentType.getString(ctx, "id"));
+                                            Identifier id = ShaderResolver.toShaderPath(StringArgumentType.getString(ctx, "id"));
                                             if (id == null) { ctx.getSource().sendError(Text.literal("Invalid id")); return 0; }
                                             if (enabled && id.equals(last)) { enabled = false; broadcast(ctx.getSource().getServer(), null); ctx.getSource().sendFeedback(() -> Text.literal("[shader] disabled"), true); }
                                             else { last = id; enabled = true; broadcast(ctx.getSource().getServer(), id); ctx.getSource().sendFeedback(() -> Text.literal("[shader] enabled: " + id), true); }
@@ -77,7 +77,7 @@ public final class ShaderCommand {
     }
 
     private static void broadcast(MinecraftServer server, Identifier idOrNull) {
-        var payload = new SelectS2C(idOrNull);
+        var payload = new ShaderSelectS2C(idOrNull);
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(p, payload);
         }

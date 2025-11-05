@@ -1,9 +1,9 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.ShaderCommand;
-import net.baconeater.features.keybinds.ScoreHandler;
-import net.baconeater.features.keybinds.payload.C2SPayload;
-import net.baconeater.features.shaders.payload.SelectS2C;
+import net.baconeater.features.keybinds.KeybindScoreHandler;
+import net.baconeater.features.keybinds.payload.KeybindC2S;
+import net.baconeater.features.shaders.payload.ShaderSelectS2C;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -18,21 +18,21 @@ public class Mod implements ModInitializer {
 		// === Networking ===
 		// C2S (keybind actions from client)
 		PayloadTypeRegistry.playC2S().register(
-				C2SPayload.ID,
-				C2SPayload.CODEC
+				KeybindC2S.ID,
+				KeybindC2S.CODEC
 		);
-		ServerPlayNetworking.registerGlobalReceiver(C2SPayload.ID, (payload, ctx) -> {
+		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.ID, (payload, ctx) -> {
 			MinecraftServer server = ctx.server();
 			ServerPlayerEntity player = ctx.player();
 			server.execute(() ->
-					ScoreHandler.handle(server.getScoreboard(), player, payload.action())
+					KeybindScoreHandler.handle(server.getScoreboard(), player, payload.action())
 			);
 		});
 
 		// S2C (shader selection from server → clients) — register codec ONCE here (not in ModClient)
 		PayloadTypeRegistry.playS2C().register(
-				SelectS2C.ID,
-				SelectS2C.CODEC
+				ShaderSelectS2C.ID,
+				ShaderSelectS2C.CODEC
 		);
 
 		// === Commands ===
