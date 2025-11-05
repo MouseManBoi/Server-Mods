@@ -1,26 +1,25 @@
 {
-	"accessWidener": "mod.accesswidener",
 	"schemaVersion": 1,
-	"id": "keybinds",
+	"id": "server",
 	"version": "${version}",
-	"name": "Keybinds",
+	"name": "Server",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
-		"Me!"
+		"BaconEater"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/keybinds/icon.png",
+	"icon": "assets/server/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main":   ["net.baconeater.Mod"],
 		"client": ["net.baconeater.ModClient"]
 	},
 	"mixins": [
-		"keybinds.mixins.json"
+		"server.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.17.3",
