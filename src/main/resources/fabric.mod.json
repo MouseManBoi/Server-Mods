@@ -15,7 +15,7 @@
 	"icon": "assets/server/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main":   ["net.baconeater.Mod"],
+		"main":   ["net.baconeater.ModServer"],
 		"client": ["net.baconeater.ModClient"]
 	},
 	"mixins": [

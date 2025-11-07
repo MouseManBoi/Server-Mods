@@ -3,5 +3,8 @@
 	"minVersion": "0.8",
 	"package": "net.baconeater.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"injectors": { "defaultRequire": 1 }
+	"injectors": { "defaultRequire": 1 },
+	"client": [
+		"GameRendererInvoker"
+	]
 }

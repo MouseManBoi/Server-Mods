@@ -1,13 +1,15 @@
 package net.baconeater;
 
+import net.baconeater.mixin.GameRendererInvoker;
+import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
-import net.baconeater.features.commands.shader.payload.ShaderToggleS2C;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -16,11 +18,18 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class ModClient implements ClientModInitializer {
+    private static final Identifier CREEPER_CHAIN_NEW  = Identifier.of("minecraft", "creeper");
+    private static final Identifier CREEPER_CHAIN_OLD  = Identifier.of("minecraft", "shaders/post/creeper.json");
+    private Identifier activeShader = null;
     private static KeyBinding customAbilityToggle, customAbilityMove1, customAbilityMove2, customAbilityMove3, customAbilityMove4;
     private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("keybinds", "abilities"));
 
     @Override
     public void onInitializeClient() {
+        PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
+        ClientPlayNetworking.registerGlobalReceiver(ToggleShaderPayload.ID, (payload, context) ->
+                context.client().execute(() -> handlePayload(context.client(), payload)));
+
         // === Keybinds you already had ===
         customAbilityToggle = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.keybinds.abilities.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY));
@@ -40,22 +49,58 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove3.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(3));
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
         });
+    }
 
-        // === Receive shader toggles from the server ===
-        ClientPlayNetworking.registerGlobalReceiver(ShaderToggleS2C.ID, (payload, context) -> {
-            String effect = payload.effect();
-            boolean enabled = payload.enabled();
+    private void handlePayload(MinecraftClient client, ToggleShaderPayload payload) {
+        if (client == null) {
+            return;
+        }
+        boolean enable;
+        Identifier shaderId = payload.shaderId();
+        switch (payload.action()) {
+            case ENABLE -> enable = true;
+            case DISABLE -> enable = false;
+            case TOGGLE -> enable = !shaderId.equals(activeShader);
+            default -> throw new IllegalStateException("Unhandled shader action: " + payload.action());
+        }
 
-            MinecraftClient mc = context.client();
-            mc.execute(() -> {
-                // TODO: Hook into your actual shader toggler here.
-                // Example: ShaderToggleManager.set(effect, enabled);
-                if (mc.player != null) {
-                    mc.player.sendMessage(net.minecraft.text.Text.literal(
-                            "[Shader] " + effect + " -> " + (enabled ? "ON" : "OFF")
-                    ), false);
+        boolean success;
+        if (enable) {
+            success = enableShader(client, shaderId);
+        } else {
+            success = disableShader(client);
+        }
+        if (success) {
+            activeShader = enable ? shaderId : null;
+        }
+    }
+
+    private boolean enableShader(MinecraftClient client, Identifier shaderId) {
+        if (client == null || client.gameRenderer == null) {
+            return false;
+        }
+        try {
+            ((GameRendererInvoker) client.gameRenderer).invokeSetPostProcessor(shaderId);
+            return true;
+        } catch (Throwable original) {
+            // Fallback for creeper shader to older resource path
+            if (shaderId.equals(CREEPER_CHAIN_NEW)) {
+                try {
+                    ((GameRendererInvoker) client.gameRenderer).invokeSetPostProcessor(CREEPER_CHAIN_OLD);
+                    return true;
+                } catch (Throwable ignored) {
                 }
-            });
-        });
+            }
+        }
+        return false;
+    }
+
+
+    private boolean disableShader(MinecraftClient client) {
+        if (client == null || client.gameRenderer == null) {
+            return false;
+        }
+        client.gameRenderer.clearPostProcessor(); // hard OFF
+        return true;
     }
 }
