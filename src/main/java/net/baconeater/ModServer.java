@@ -1,5 +1,6 @@
 package net.baconeater;
 
+import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.keybinds.KeybindScoreHandler;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
@@ -24,7 +25,9 @@ public class ModServer implements ModInitializer {
 			ServerPlayerEntity player = ctx.player();
 			server.execute(() -> KeybindScoreHandler.handle(server.getScoreboard(), player, payload.action()));
 		});
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-				ShaderCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			ShaderCommand.register(dispatcher);
+			HealCommand.register(dispatcher);
+		});
 	}
 }
