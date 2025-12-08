@@ -12,7 +12,6 @@ import net.minecraft.text.Text;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import java.util.Collection;
-import java.util.UUID;
 
 public final class PerspectiveCommand {
     private PerspectiveCommand() {
@@ -40,10 +39,6 @@ public final class PerspectiveCommand {
                                 .executes(context -> setPerspective(
                                         EntityArgumentType.getPlayers(context, "targets"),
                                         PerspectiveState.THIRD,
-                                        context.getSource())))
-                        .then(CommandManager.literal("query")
-                                .executes(context -> queryPerspective(
-                                        EntityArgumentType.getPlayers(context, "targets"),
                                         context.getSource()))));
         return root;
     }
@@ -55,17 +50,6 @@ public final class PerspectiveCommand {
         targets.forEach(player -> ServerPlayNetworking.send(player, PerspectiveRequestPayload.set(state)));
         source.sendFeedback(
                 () -> Text.literal("Set perspective to " + state.commandName() + " for " + targets.size() + " player(s)."),
-                true);
-        return targets.size();
-    }
-
-    private static int queryPerspective(Collection<ServerPlayerEntity> targets, ServerCommandSource source) {
-        for (ServerPlayerEntity player : targets) {
-            UUID requestId = PerspectiveQueryTracker.register(source, player.getName().getString());
-            ServerPlayNetworking.send(player, PerspectiveRequestPayload.query(requestId));
-        }
-        source.sendFeedback(
-                () -> Text.literal("Requested perspective state from " + targets.size() + " player(s)."),
                 true);
         return targets.size();
     }

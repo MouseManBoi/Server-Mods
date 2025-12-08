@@ -5,7 +5,6 @@ import net.baconeater.features.commands.visibility.client.ClientVisibilityManage
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
 import net.baconeater.features.commands.perspective.PerspectiveState;
-import net.baconeater.features.commands.perspective.network.PerspectiveReportPayload;
 import net.baconeater.features.commands.perspective.network.PerspectiveRequestPayload;
 import net.baconeater.mixin.GameRendererInvoker;
 
@@ -124,11 +123,6 @@ public class ModClient implements ClientModInitializer {
         if (client == null || client.options == null) {
             return;
         }
-        switch (payload.action()) {
-            case SET -> client.options.setPerspective(payload.state().toClientPerspective());
-            case QUERY -> ClientPlayNetworking.send(new PerspectiveReportPayload(
-                    payload.requestId(),
-                    PerspectiveState.fromClientPerspective(client.options.getPerspective())));
-        }
+        client.options.setPerspective(payload.state().toClientPerspective());
     }
 }
