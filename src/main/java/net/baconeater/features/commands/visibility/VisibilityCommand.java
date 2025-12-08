@@ -43,18 +43,30 @@ public final class VisibilityCommand {
             ServerPlayerEntity viewer,
             boolean hide,
             ServerCommandSource source) {
-        targets.forEach(target -> sendVisibilityUpdate(target, viewer, hide));
+        int total = 0;
+        for (Entity target : targets) {
+            total += sendVisibilityUpdate(target, viewer, hide);
+        }
+
+        int finalTotal = total;
         source.sendFeedback(
                 () -> Text.literal("Visibility " + (hide ? "disabled" : "enabled") +
-                        " for " + targets.size() + " player(s) to " + viewer.getName().getString()),
+                        " for " + finalTotal + " entit" + (finalTotal == 1 ? "y" : "ies") +
+                        " to " + viewer.getName().getString()),
                 true);
-        return targets.size();
+        return total;
     }
 
-    private static void sendVisibilityUpdate(Entity target, ServerPlayerEntity viewer, boolean hide) {
+    private static int sendVisibilityUpdate(Entity target, ServerPlayerEntity viewer, boolean hide) {
         VisibilityTogglePayload payload = hide
                 ? VisibilityTogglePayload.disable(target.getId())
                 : VisibilityTogglePayload.enable(target.getId());
         ServerPlayNetworking.send(viewer, payload);
+
+        int count = 1;
+        for (Entity passenger : target.getPassengerList()) {
+            count += sendVisibilityUpdate(passenger, viewer, hide);
+        }
+        return count;
     }
 }
