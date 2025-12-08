@@ -2,11 +2,14 @@ package net.baconeater;
 
 import net.baconeater.mixin.GameRendererInvoker;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
+import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
+import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -27,8 +30,12 @@ public class ModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(ToggleShaderPayload.ID, (payload, context) ->
                 context.client().execute(() -> handlePayload(context.client(), payload)));
+        ClientPlayNetworking.registerGlobalReceiver(VisibilityTogglePayload.ID, (payload, context) ->
+                context.client().execute(() -> ClientVisibilityManager.handlePayload(payload)));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientVisibilityManager.clear());
 
         // === Keybinds you already had ===
         customAbilityToggle = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -48,6 +55,8 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove2.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(2));
             while (customAbilityMove3.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(3));
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
+
+            ClientVisibilityManager.tick(client);
         });
     }
 

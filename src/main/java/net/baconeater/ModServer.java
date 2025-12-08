@@ -2,6 +2,7 @@ package net.baconeater;
 
 import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
+import net.baconeater.features.commands.visibility.VisibilityCommand;
 import net.baconeater.features.keybinds.KeybindScoreHandler;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
 
@@ -28,6 +29,7 @@ public class ModServer implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ShaderCommand.register(dispatcher);
 			HealCommand.register(dispatcher);
+			VisibilityCommand.register(dispatcher);
 		});
 	}
 }
