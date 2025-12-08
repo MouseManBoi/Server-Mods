@@ -1,10 +1,13 @@
 package net.baconeater;
 
-import net.baconeater.mixin.GameRendererInvoker;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
+import net.baconeater.features.commands.perspective.PerspectiveState;
+import net.baconeater.features.commands.perspective.network.PerspectiveReportPayload;
+import net.baconeater.features.commands.perspective.network.PerspectiveRequestPayload;
+import net.baconeater.mixin.GameRendererInvoker;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -20,6 +23,7 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
+
 public class ModClient implements ClientModInitializer {
     private static final Identifier CREEPER_CHAIN_NEW  = Identifier.of("minecraft", "creeper");
     private static final Identifier CREEPER_CHAIN_OLD  = Identifier.of("minecraft", "shaders/post/creeper.json");
@@ -31,10 +35,13 @@ public class ModClient implements ClientModInitializer {
     public void onInitializeClient() {
         PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(ToggleShaderPayload.ID, (payload, context) ->
                 context.client().execute(() -> handlePayload(context.client(), payload)));
         ClientPlayNetworking.registerGlobalReceiver(VisibilityTogglePayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientVisibilityManager.handlePayload(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(PerspectiveRequestPayload.ID, (payload, context) ->
+                context.client().execute(() -> handlePerspectiveRequest(context.client(), payload)));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientVisibilityManager.clear());
 
         // === Keybinds you already had ===
@@ -111,5 +118,17 @@ public class ModClient implements ClientModInitializer {
         }
         client.gameRenderer.clearPostProcessor(); // hard OFF
         return true;
+    }
+
+    private void handlePerspectiveRequest(MinecraftClient client, PerspectiveRequestPayload payload) {
+        if (client == null || client.options == null) {
+            return;
+        }
+        switch (payload.action()) {
+            case SET -> client.options.setPerspective(payload.state().toClientPerspective());
+            case QUERY -> ClientPlayNetworking.send(new PerspectiveReportPayload(
+                    payload.requestId(),
+                    PerspectiveState.fromClientPerspective(client.options.getPerspective())));
+        }
     }
 }
