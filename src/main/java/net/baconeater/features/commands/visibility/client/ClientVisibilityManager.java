@@ -3,8 +3,6 @@ package net.baconeater.features.commands.visibility.client;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +12,6 @@ import java.util.Set;
 public final class ClientVisibilityManager {
     private static final Set<Integer> HIDDEN_ENTITY_IDS = new HashSet<>();
     private static final Map<Integer, Boolean> PREVIOUS_INVISIBILITY = new HashMap<>();
-    private static final Map<Integer, ItemStack> PREVIOUS_ITEM_DISPLAYS = new HashMap<>();
 
     private ClientVisibilityManager() {
     }
@@ -42,7 +39,6 @@ public final class ClientVisibilityManager {
     public static void clear() {
         HIDDEN_ENTITY_IDS.clear();
         PREVIOUS_INVISIBILITY.clear();
-        PREVIOUS_ITEM_DISPLAYS.clear();
     }
 
     public static boolean isHidden(int entityId) {
@@ -75,30 +71,19 @@ public final class ClientVisibilityManager {
         int entityId = entity.getId();
         PREVIOUS_INVISIBILITY.putIfAbsent(entityId, entity.isInvisible());
         entity.setInvisible(true);
-
-        if (entity instanceof DisplayEntity.ItemDisplayEntity itemDisplay) {
-            PREVIOUS_ITEM_DISPLAYS.putIfAbsent(entityId, itemDisplay.getItemStack().copy());
-            itemDisplay.setItemStack(ItemStack.EMPTY);
-        }
     }
 
     private static void showEntityIfPresent(int entityId) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) {
-            PREVIOUS_ITEM_DISPLAYS.remove(entityId);
             PREVIOUS_INVISIBILITY.remove(entityId);
             return;
         }
 
         Entity entity = client.world.getEntityById(entityId);
         Boolean wasInvisible = PREVIOUS_INVISIBILITY.remove(entityId);
-        ItemStack previousItem = PREVIOUS_ITEM_DISPLAYS.remove(entityId);
         if (entity != null) {
             entity.setInvisible(Boolean.TRUE.equals(wasInvisible));
-
-            if (entity instanceof DisplayEntity.ItemDisplayEntity itemDisplay && previousItem != null) {
-                itemDisplay.setItemStack(previousItem);
-            }
         }
     }
 }
