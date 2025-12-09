@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "injectors": { "defaultRequire": 1 },
   "client": [
-    "GameRendererInvoker"
+    "GameRendererInvoker",
+    "EntityRendererMixin",
+    "EntityTrackedDataMixin"
   ]
 }

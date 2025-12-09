@@ -45,6 +45,10 @@ public final class ClientVisibilityManager {
         PREVIOUS_ITEM_DISPLAYS.clear();
     }
 
+    public static boolean isHidden(int entityId) {
+        return HIDDEN_ENTITY_IDS.contains(entityId);
+    }
+
     private static void hideEntityIfPresent(int entityId) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) {
@@ -56,6 +60,19 @@ public final class ClientVisibilityManager {
             return;
         }
 
+        hideEntity(entity);
+    }
+
+    public static void reapplyHide(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        hideEntity(entity);
+    }
+
+    private static void hideEntity(Entity entity) {
+        int entityId = entity.getId();
         PREVIOUS_INVISIBILITY.putIfAbsent(entityId, entity.isInvisible());
         entity.setInvisible(true);
 
