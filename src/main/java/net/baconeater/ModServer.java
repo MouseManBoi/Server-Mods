@@ -3,7 +3,9 @@ package net.baconeater;
 import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
+import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.commands.visibility.VisibilityCommand;
+import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.KeybindScoreHandler;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
 import net.baconeater.features.commands.perspective.network.PerspectiveRequestPayload;
@@ -27,6 +29,8 @@ public class ModServer implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(KeybindC2S.ID, KeybindC2S.CODEC);
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
 			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
 		}
 		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.ID, (payload, ctx) -> {
 			MinecraftServer server = ctx.server();
