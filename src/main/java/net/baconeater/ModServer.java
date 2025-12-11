@@ -6,11 +6,14 @@ import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.commands.visibility.VisibilityCommand;
 import net.baconeater.features.keybinds.KeybindScoreHandler;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
+import net.baconeater.features.commands.perspective.network.PerspectiveRequestPayload;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -22,6 +25,9 @@ public class ModServer implements ModInitializer {
 		// === Networking ===
 		// C2S: keybind actions from client
 		PayloadTypeRegistry.playC2S().register(KeybindC2S.ID, KeybindC2S.CODEC);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
+		}
 		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.ID, (payload, ctx) -> {
 			MinecraftServer server = ctx.server();
 			ServerPlayerEntity player = ctx.player();

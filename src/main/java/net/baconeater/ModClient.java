@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.InputUtil;
 
 import net.minecraft.util.Identifier;
@@ -123,6 +124,12 @@ public class ModClient implements ClientModInitializer {
         if (client == null || client.options == null) {
             return;
         }
-        client.options.setPerspective(payload.state().toClientPerspective());
+        Perspective newPerspective = switch (payload.state()) {
+            case FIRST -> Perspective.FIRST_PERSON;
+            case SECOND -> Perspective.THIRD_PERSON_BACK;
+            case THIRD -> Perspective.THIRD_PERSON_FRONT;
+        };
+
+        client.options.setPerspective(newPerspective);
     }
 }
