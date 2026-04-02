@@ -29,6 +29,8 @@ public class ModClient implements ClientModInitializer {
     private static final Identifier CREEPER_CHAIN_OLD  = Identifier.of("minecraft", "shaders/post/creeper.json");
     private Identifier activeShader = null;
     private static KeyBinding customAbilityToggle, customAbilityMove1, customAbilityMove2, customAbilityMove3, customAbilityMove4, customAbilityBlock, customAbilityDash;
+    private boolean leftMouseWasDown = false;
+    private boolean rightMouseWasDown = false;
     private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("keybinds", "abilities"));
 
     @Override
@@ -68,9 +70,38 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
             while (customAbilityBlock.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(5));
             while (customAbilityDash.wasPressed())   ClientPlayNetworking.send(new KeybindC2S(6));
+            handleMouseTriggers(client);
 
             ClientVisibilityManager.tick(client);
         });
+    }
+
+    private void handleMouseTriggers(MinecraftClient client) {
+        if (client == null || client.getWindow() == null || client.getNetworkHandler() == null || client.player == null) {
+            leftMouseWasDown = false;
+            rightMouseWasDown = false;
+            return;
+        }
+
+        long windowHandle = client.getWindow().getHandle();
+        boolean leftMouseDown = GLFW.glfwGetMouseButton(windowHandle, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+        boolean rightMouseDown = GLFW.glfwGetMouseButton(windowHandle, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+
+        if (leftMouseDown && !leftMouseWasDown) {
+            sendKeybindAction(client, 7);
+        }
+        if (rightMouseDown && !rightMouseWasDown) {
+            sendKeybindAction(client, 8);
+        }
+
+        leftMouseWasDown = leftMouseDown;
+        rightMouseWasDown = rightMouseDown;
+    }
+
+    private void sendKeybindAction(MinecraftClient client, int action) {
+        if (client != null && client.getNetworkHandler() != null && client.player != null) {
+            ClientPlayNetworking.send(new KeybindC2S(action));
+        }
     }
 
     private void handlePayload(MinecraftClient client, ToggleShaderPayload payload) {

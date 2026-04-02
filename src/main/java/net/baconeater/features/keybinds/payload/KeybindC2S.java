@@ -5,7 +5,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-/** action: 0=toggle(R), 1=move1(Z), 2=move2(X), 3=move3(C), 4=move4(V) */
+/** action: 0=toggle(R), 1=move1(Z), 2=move2(X), 3=move3(C), 4=move4(V), 5=block(F), 6=dash(LAlt), 7=mouse1(LMB), 8=mouse2(RMB) */
 public record KeybindC2S(int action) implements CustomPayload {
     public static final Id<KeybindC2S> ID =
             new Id<>(Identifier.of("keybinds", "ability_key"));

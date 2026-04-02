@@ -19,6 +19,8 @@ public final class KeybindScoreHandler {
     public static final String OBJ_MOVE4  = "customUniversal.Move4Trigger";  // V
     public static final String OBJ_BLOCK  = "customUniversal.BlockTrigger";  // F
     public static final String OBJ_DASH   = "customUniversal.DashTrigger";   // L Alt
+    public static final String OBJ_MOUSE1 = "customUniversal.Mouse1Trigger"; // Left click
+    public static final String OBJ_MOUSE2 = "customUniversal.Mouse2Trigger"; // Right click
 
     public static void handle(ServerScoreboard sb, ServerPlayerEntity player, int action) {
         // Ensure objectives exist (dummy criterion)
@@ -29,6 +31,8 @@ public final class KeybindScoreHandler {
         ScoreboardObjective oM4     = ensure(sb, OBJ_MOVE4,  "Move4 Trigger");
         ScoreboardObjective oBlock  = ensure(sb, OBJ_BLOCK,  "Block Trigger");
         ScoreboardObjective oDash   = ensure(sb, OBJ_DASH,   "Dash Trigger");
+        ScoreboardObjective oMouse1 = ensure(sb, OBJ_MOUSE1, "Mouse1 Trigger");
+        ScoreboardObjective oMouse2 = ensure(sb, OBJ_MOUSE2, "Mouse2 Trigger");
 
         // Map action -> objective
         ScoreboardObjective target = switch (action) {
@@ -39,6 +43,8 @@ public final class KeybindScoreHandler {
             case 4 -> oM4;     // V
             case 5 -> oBlock;  // F
             case 6 -> oDash;   // L Alt
+            case 7 -> oMouse1; // Left click
+            case 8 -> oMouse2; // Right click
             default -> null;
         };
         if (target == null) return;
