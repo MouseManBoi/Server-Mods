@@ -28,7 +28,7 @@ public class ModClient implements ClientModInitializer {
     private static final Identifier CREEPER_CHAIN_NEW  = Identifier.of("minecraft", "creeper");
     private static final Identifier CREEPER_CHAIN_OLD  = Identifier.of("minecraft", "shaders/post/creeper.json");
     private Identifier activeShader = null;
-    private static KeyBinding customAbilityToggle, customAbilityMove1, customAbilityMove2, customAbilityMove3, customAbilityMove4;
+    private static KeyBinding customAbilityToggle, customAbilityMove1, customAbilityMove2, customAbilityMove3, customAbilityMove4, customAbilityBlock, customAbilityDash;
     private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("keybinds", "abilities"));
 
     @Override
@@ -55,6 +55,10 @@ public class ModClient implements ClientModInitializer {
                 "key.keybinds.abilities.move3",  InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY));
         customAbilityMove4  = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.keybinds.abilities.move4",  InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY));
+        customAbilityBlock  = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.keybinds.abilities.block",  InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F, CATEGORY));
+        customAbilityDash   = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.keybinds.abilities.dash",   InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, CATEGORY));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (customAbilityToggle.wasPressed()) ClientPlayNetworking.send(new KeybindC2S(0));
@@ -62,6 +66,8 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove2.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(2));
             while (customAbilityMove3.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(3));
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
+            while (customAbilityBlock.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(5));
+            while (customAbilityDash.wasPressed())   ClientPlayNetworking.send(new KeybindC2S(6));
 
             ClientVisibilityManager.tick(client);
         });
