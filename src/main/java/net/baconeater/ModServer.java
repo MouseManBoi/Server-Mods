@@ -4,6 +4,8 @@ import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
+import net.baconeater.features.commands.toast.ToastCommand;
+import net.baconeater.features.commands.toast.network.ToastPayload;
 import net.baconeater.features.commands.visibility.VisibilityCommand;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.KeybindScoreHandler;
@@ -31,6 +33,7 @@ public class ModServer implements ModInitializer {
 			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
 			PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
 			PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(ToastPayload.ID, ToastPayload.CODEC);
 		}
 		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.ID, (payload, ctx) -> {
 			MinecraftServer server = ctx.server();
@@ -42,6 +45,7 @@ public class ModServer implements ModInitializer {
 			HealCommand.register(dispatcher);
 			VisibilityCommand.register(dispatcher);
 			PerspectiveCommand.register(dispatcher);
+			ToastCommand.register(dispatcher, registryAccess);
 		});
 	}
 }

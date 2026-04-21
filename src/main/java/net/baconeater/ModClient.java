@@ -1,6 +1,8 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
+import net.baconeater.features.commands.toast.client.ClientToast;
+import net.baconeater.features.commands.toast.network.ToastPayload;
 import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
@@ -36,12 +38,16 @@ public class ModClient implements ClientModInitializer {
         PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ToastPayload.ID, ToastPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(ToggleShaderPayload.ID, (payload, context) ->
                 context.client().execute(() -> handlePayload(context.client(), payload)));
         ClientPlayNetworking.registerGlobalReceiver(VisibilityTogglePayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientVisibilityManager.handlePayload(payload)));
         ClientPlayNetworking.registerGlobalReceiver(PerspectiveRequestPayload.ID, (payload, context) ->
                 context.client().execute(() -> handlePerspectiveRequest(context.client(), payload)));
+        ClientPlayNetworking.registerGlobalReceiver(ToastPayload.ID, (payload, context) ->
+                context.client().execute(() -> context.client().getToastManager()
+                        .add(new ClientToast(payload.icon(), payload.title(), payload.subtitle()))));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientVisibilityManager.clear());
 
         // === Keybinds you already had ===
