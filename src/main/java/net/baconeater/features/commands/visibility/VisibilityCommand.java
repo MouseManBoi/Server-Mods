@@ -22,37 +22,39 @@ public final class VisibilityCommand {
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(CommandManager.literal("disable")
                         .then(CommandManager.argument("target", EntityArgumentType.entities())
-                                .then(CommandManager.argument("viewer", EntityArgumentType.player())
+                                .then(CommandManager.argument("viewer", EntityArgumentType.players())
                                         .executes(context -> changeVisibility(
                                                 EntityArgumentType.getEntities(context, "target"),
-                                                EntityArgumentType.getPlayer(context, "viewer"),
+                                                EntityArgumentType.getPlayers(context, "viewer"),
                                                 true,
                                                 context.getSource())))))
                 .then(CommandManager.literal("enable")
                         .then(CommandManager.argument("target", EntityArgumentType.entities())
-                                .then(CommandManager.argument("viewer", EntityArgumentType.player())
+                                .then(CommandManager.argument("viewer", EntityArgumentType.players())
                                         .executes(context -> changeVisibility(
                                                 EntityArgumentType.getEntities(context, "target"),
-                                                EntityArgumentType.getPlayer(context, "viewer"),
+                                                EntityArgumentType.getPlayers(context, "viewer"),
                                                 false,
                                                 context.getSource()))))));
     }
 
     private static int changeVisibility(
             Collection<? extends Entity> targets,
-            ServerPlayerEntity viewer,
+            Collection<ServerPlayerEntity> viewers,
             boolean hide,
             ServerCommandSource source) {
         int total = 0;
-        for (Entity target : targets) {
-            total += sendVisibilityUpdate(target, viewer, hide);
+        for (ServerPlayerEntity viewer : viewers) {
+            for (Entity target : targets) {
+                total += sendVisibilityUpdate(target, viewer, hide);
+            }
         }
 
         int finalTotal = total;
         source.sendFeedback(
                 () -> Text.literal("Visibility " + (hide ? "disabled" : "enabled") +
                         " for " + finalTotal + " entit" + (finalTotal == 1 ? "y" : "ies") +
-                        " to " + viewer.getName().getString()),
+                        " across " + viewers.size() + " viewer" + (viewers.size() == 1 ? "" : "s")),
                 true);
         return total;
     }
