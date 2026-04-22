@@ -29,6 +29,7 @@ public final class ShaderTimeUniforms {
         }
 
         float elapsedSeconds = (System.nanoTime() - shaderStartNanos) / 1_000_000_000.0F;
+        elapsedSeconds = ShaderContextManager.getDisplayElapsedSeconds(passId, elapsedSeconds);
         for (String uniformName : TIME_UNIFORM_NAMES) {
             if (uniformBuffers.containsKey(uniformName) || shouldInjectTime(passId)) {
                 replaceFloatUniform(uniformBuffers, passId, uniformName, elapsedSeconds);

@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class ShaderCommand {
     private static final ResourceFinder POST_EFFECT_FINDER = ResourceFinder.json("post_effect");
+    private static final String[] SHADER_STATES = {"in", "out"};
 
     private ShaderCommand() {
     }
@@ -61,7 +63,16 @@ public final class ShaderCommand {
                                         EntityArgumentType.getPlayers(context, "targets"),
                                         context.getSource(),
                                         IdentifierArgumentType.getIdentifier(context, "shader"),
-                                        action)))));
+                                        action,
+                                        ShaderState.NONE))
+                                .then(CommandManager.argument("state", StringArgumentType.word())
+                                        .suggests(ShaderCommand::suggestShaderStates)
+                                        .executes(context -> applyShaderUpdate(
+                                                EntityArgumentType.getPlayers(context, "targets"),
+                                                context.getSource(),
+                                                IdentifierArgumentType.getIdentifier(context, "shader"),
+                                                action,
+                                                ShaderState.fromCommandName(StringArgumentType.getString(context, "state"))))))));
     }
 
     private static CompletableFuture<Suggestions> suggestShaders(
@@ -109,15 +120,22 @@ public final class ShaderCommand {
         }
     }
 
+    private static CompletableFuture<Suggestions> suggestShaderStates(
+            CommandContext<ServerCommandSource> context,
+            SuggestionsBuilder builder) {
+        return CommandSource.suggestMatching(SHADER_STATES, builder);
+    }
+
     private static int applyShaderUpdate(
             Collection<ServerPlayerEntity> players,
             ServerCommandSource source,
             Identifier shader,
-            ToggleShaderPayload.ShaderAction action) {
+            ToggleShaderPayload.ShaderAction action,
+            ShaderState state) {
         ToggleShaderPayload payload = switch (action) {
-            case TOGGLE -> ToggleShaderPayload.toggle(shader);
-            case ENABLE -> ToggleShaderPayload.enable(shader);
-            case DISABLE -> ToggleShaderPayload.disable(shader);
+            case TOGGLE -> ToggleShaderPayload.toggle(shader, state);
+            case ENABLE -> ToggleShaderPayload.enable(shader, state);
+            case DISABLE -> ToggleShaderPayload.disable(shader, state);
         };
         players.forEach(player -> ServerPlayNetworking.send(player, payload));
         String message = switch (action) {
@@ -126,7 +144,13 @@ public final class ShaderCommand {
             case DISABLE -> "Disabled";
         };
         source.sendFeedback(
-                () -> Text.literal(message + " shader " + shader + " for " + players.size() + " player(s)."),
+                () -> Text.literal(message
+                        + " shader "
+                        + shader
+                        + (state.isSpecified() ? " (" + state.commandName() + ")" : "")
+                        + " for "
+                        + players.size()
+                        + " player(s)."),
                 true);
         return players.size();
     }
