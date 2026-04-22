@@ -1,6 +1,7 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
+import net.baconeater.features.commands.shader.client.ShaderTimeUniforms;
 import net.baconeater.features.commands.toast.client.ClientToast;
 import net.baconeater.features.commands.toast.network.ToastPayload;
 import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
@@ -48,7 +49,10 @@ public class ModClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(ToastPayload.ID, (payload, context) ->
                 context.client().execute(() -> context.client().getToastManager()
                         .add(new ClientToast(payload.icon(), payload.title(), payload.subtitle()))));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientVisibilityManager.clear());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            ClientVisibilityManager.clear();
+            ShaderTimeUniforms.onShaderDisabled();
+        });
 
         // === Keybinds you already had ===
         customAbilityToggle = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -94,6 +98,11 @@ public class ModClient implements ClientModInitializer {
         }
         if (success) {
             activeShader = enable ? shaderId : null;
+            if (enable) {
+                ShaderTimeUniforms.onShaderEnabled();
+            } else {
+                ShaderTimeUniforms.onShaderDisabled();
+            }
         }
     }
 
