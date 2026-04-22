@@ -4,6 +4,13 @@
   "package": "net.baconeater.mixin",
   "compatibilityLevel": "JAVA_21",
   "injectors": { "defaultRequire": 1 },
+  "mixins": [
+    "EntityAccessor",
+    "EntityDismountMixin",
+    "EntityInvoker",
+    "EntityPassengerMixin",
+    "RideCommandMixin"
+  ],
   "client": [
     "GameRendererInvoker",
     "EntityRenderManagerMixin",
