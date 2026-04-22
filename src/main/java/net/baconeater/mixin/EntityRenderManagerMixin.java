@@ -19,7 +19,7 @@ public abstract class EntityRenderManagerMixin {
             double y,
             double z,
             CallbackInfoReturnable<Boolean> cir) {
-        if (ClientVisibilityManager.isHidden(entity.getId())) {
+        if (ClientVisibilityManager.shouldSuppressRender(entity.getId())) {
             cir.setReturnValue(false);
         }
     }

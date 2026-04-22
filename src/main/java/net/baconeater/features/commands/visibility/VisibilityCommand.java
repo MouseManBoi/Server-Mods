@@ -1,6 +1,7 @@
 package net.baconeater.features.commands.visibility;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
@@ -27,7 +28,15 @@ public final class VisibilityCommand {
                                                 EntityArgumentType.getEntities(context, "target"),
                                                 EntityArgumentType.getPlayers(context, "viewer"),
                                                 true,
-                                                context.getSource())))))
+                                                false,
+                                                context.getSource()))
+                                        .then(CommandManager.argument("renderOutsideFirstPerson", BoolArgumentType.bool())
+                                                .executes(context -> changeVisibility(
+                                                        EntityArgumentType.getEntities(context, "target"),
+                                                        EntityArgumentType.getPlayers(context, "viewer"),
+                                                        true,
+                                                        BoolArgumentType.getBool(context, "renderOutsideFirstPerson"),
+                                                        context.getSource()))))))
                 .then(CommandManager.literal("enable")
                         .then(CommandManager.argument("target", EntityArgumentType.entities())
                                 .then(CommandManager.argument("viewer", EntityArgumentType.players())
@@ -35,39 +44,53 @@ public final class VisibilityCommand {
                                                 EntityArgumentType.getEntities(context, "target"),
                                                 EntityArgumentType.getPlayers(context, "viewer"),
                                                 false,
-                                                context.getSource()))))));
+                                                false,
+                                                context.getSource()))
+                                        .then(CommandManager.argument("renderOutsideFirstPerson", BoolArgumentType.bool())
+                                                .executes(context -> changeVisibility(
+                                                        EntityArgumentType.getEntities(context, "target"),
+                                                        EntityArgumentType.getPlayers(context, "viewer"),
+                                                        false,
+                                                        false,
+                                                        context.getSource()))))))
+                );
     }
 
     private static int changeVisibility(
             Collection<? extends Entity> targets,
             Collection<ServerPlayerEntity> viewers,
             boolean hide,
+            boolean renderOutsideFirstPerson,
             ServerCommandSource source) {
         int total = 0;
         for (ServerPlayerEntity viewer : viewers) {
             for (Entity target : targets) {
-                total += sendVisibilityUpdate(target, viewer, hide);
+                total += sendVisibilityUpdate(target, viewer, hide, renderOutsideFirstPerson);
             }
         }
 
         int finalTotal = total;
+        String perspectiveSuffix = hide && renderOutsideFirstPerson
+                ? " (still rendered in 2nd/3rd person)"
+                : "";
         source.sendFeedback(
                 () -> Text.literal("Visibility " + (hide ? "disabled" : "enabled") +
                         " for " + finalTotal + " entit" + (finalTotal == 1 ? "y" : "ies") +
-                        " across " + viewers.size() + " viewer" + (viewers.size() == 1 ? "" : "s")),
+                        " across " + viewers.size() + " viewer" + (viewers.size() == 1 ? "" : "s") +
+                        perspectiveSuffix),
                 true);
         return total;
     }
 
-    private static int sendVisibilityUpdate(Entity target, ServerPlayerEntity viewer, boolean hide) {
+    private static int sendVisibilityUpdate(Entity target, ServerPlayerEntity viewer, boolean hide, boolean renderOutsideFirstPerson) {
         VisibilityTogglePayload payload = hide
-                ? VisibilityTogglePayload.disable(target.getId())
+                ? VisibilityTogglePayload.disable(target.getId(), renderOutsideFirstPerson)
                 : VisibilityTogglePayload.enable(target.getId());
         ServerPlayNetworking.send(viewer, payload);
 
         int count = 1;
         for (Entity passenger : target.getPassengerList()) {
-            count += sendVisibilityUpdate(passenger, viewer, hide);
+            count += sendVisibilityUpdate(passenger, viewer, hide, renderOutsideFirstPerson);
         }
         return count;
     }

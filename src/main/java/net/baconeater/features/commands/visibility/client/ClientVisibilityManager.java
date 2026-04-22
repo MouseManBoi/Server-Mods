@@ -2,15 +2,14 @@ package net.baconeater.features.commands.visibility.client;
 
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.Perspective;
 import net.minecraft.entity.Entity;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public final class ClientVisibilityManager {
-    private static final Set<Integer> HIDDEN_ENTITY_IDS = new HashSet<>();
+    private static final Map<Integer, Boolean> HIDDEN_ENTITY_IDS = new HashMap<>();
     private static final Map<Integer, Boolean> PREVIOUS_INVISIBILITY = new HashMap<>();
 
     private ClientVisibilityManager() {
@@ -18,8 +17,8 @@ public final class ClientVisibilityManager {
 
     public static void handlePayload(VisibilityTogglePayload payload) {
         if (payload.action().hides()) {
-            HIDDEN_ENTITY_IDS.add(payload.entityId());
-            hideEntityIfPresent(payload.entityId());
+            HIDDEN_ENTITY_IDS.put(payload.entityId(), payload.renderOutsideFirstPerson());
+            refreshEntityVisibility(payload.entityId());
         } else {
             HIDDEN_ENTITY_IDS.remove(payload.entityId());
             showEntityIfPresent(payload.entityId());
@@ -31,8 +30,8 @@ public final class ClientVisibilityManager {
             return;
         }
 
-        for (int entityId : HIDDEN_ENTITY_IDS) {
-            hideEntityIfPresent(entityId);
+        for (int entityId : HIDDEN_ENTITY_IDS.keySet()) {
+            refreshEntityVisibility(entityId);
         }
     }
 
@@ -42,10 +41,18 @@ public final class ClientVisibilityManager {
     }
 
     public static boolean isHidden(int entityId) {
-        return HIDDEN_ENTITY_IDS.contains(entityId);
+        return HIDDEN_ENTITY_IDS.containsKey(entityId);
     }
 
-    private static void hideEntityIfPresent(int entityId) {
+    public static boolean shouldSuppressRender(int entityId) {
+        if (!isHidden(entityId)) {
+            return false;
+        }
+
+        return shouldHideInCurrentPerspective(entityId);
+    }
+
+    private static void refreshEntityVisibility(int entityId) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) {
             return;
@@ -56,7 +63,12 @@ public final class ClientVisibilityManager {
             return;
         }
 
-        hideEntity(entity);
+        if (shouldHideInCurrentPerspective(entityId)) {
+            hideEntity(entity);
+            return;
+        }
+
+        restoreEntityVisibility(entity);
     }
 
     public static void reapplyHide(Entity entity) {
@@ -64,7 +76,12 @@ public final class ClientVisibilityManager {
             return;
         }
 
-        hideEntity(entity);
+        if (shouldHideInCurrentPerspective(entity.getId())) {
+            hideEntity(entity);
+            return;
+        }
+
+        restoreEntityVisibility(entity);
     }
 
     private static void hideEntity(Entity entity) {
@@ -81,9 +98,33 @@ public final class ClientVisibilityManager {
         }
 
         Entity entity = client.world.getEntityById(entityId);
-        Boolean wasInvisible = PREVIOUS_INVISIBILITY.remove(entityId);
         if (entity != null) {
-            entity.setInvisible(Boolean.TRUE.equals(wasInvisible));
+            restoreEntityVisibility(entity);
+        } else {
+            PREVIOUS_INVISIBILITY.remove(entityId);
         }
+    }
+
+    private static boolean shouldHideInCurrentPerspective(int entityId) {
+        Boolean renderOutsideFirstPerson = HIDDEN_ENTITY_IDS.get(entityId);
+        if (renderOutsideFirstPerson == null) {
+            return false;
+        }
+
+        return !renderOutsideFirstPerson || isFirstPersonPerspective();
+    }
+
+    private static boolean isFirstPersonPerspective() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.options == null) {
+            return true;
+        }
+
+        return client.options.getPerspective() == Perspective.FIRST_PERSON;
+    }
+
+    private static void restoreEntityVisibility(Entity entity) {
+        Boolean wasInvisible = PREVIOUS_INVISIBILITY.remove(entity.getId());
+        entity.setInvisible(Boolean.TRUE.equals(wasInvisible));
     }
 }
