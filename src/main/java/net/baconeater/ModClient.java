@@ -78,6 +78,9 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
 
             ClientVisibilityManager.tick(client);
+            if (activeShader != null && !isShaderActiveInRenderer(client, activeShader)) {
+                enableShader(client, activeShader);
+            }
             if (activeShader != null && ShaderContextManager.shouldDisableAfterAnimation(activeShader)) {
                 if (disableShader(client)) {
                     activeShader = null;
@@ -149,6 +152,18 @@ public class ModClient implements ClientModInitializer {
         return false;
     }
 
+    private boolean isShaderActiveInRenderer(MinecraftClient client, Identifier shaderId) {
+        if (client == null || client.gameRenderer == null || shaderId == null) {
+            return false;
+        }
+        Identifier currentShader = ((GameRendererInvoker) client.gameRenderer).invokeGetPostProcessorId();
+        if (currentShader == null) {
+            return false;
+        }
+        return currentShader.equals(shaderId)
+                || (shaderId.equals(CREEPER_CHAIN_NEW) && currentShader.equals(CREEPER_CHAIN_OLD));
+    }
+
 
     private boolean disableShader(MinecraftClient client) {
         if (client == null || client.gameRenderer == null) {
@@ -162,6 +177,7 @@ public class ModClient implements ClientModInitializer {
         if (client == null || client.options == null) {
             return;
         }
+        Identifier shaderToRestore = activeShader;
         Perspective newPerspective = switch (payload.state()) {
             case FIRST -> Perspective.FIRST_PERSON;
             case SECOND -> Perspective.THIRD_PERSON_BACK;
@@ -169,5 +185,8 @@ public class ModClient implements ClientModInitializer {
         };
 
         client.options.setPerspective(newPerspective);
+        if (shaderToRestore != null && !isShaderActiveInRenderer(client, shaderToRestore)) {
+            enableShader(client, shaderToRestore);
+        }
     }
 }

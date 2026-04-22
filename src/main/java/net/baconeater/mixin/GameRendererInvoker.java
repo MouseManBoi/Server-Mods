@@ -9,4 +9,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface GameRendererInvoker {
     @Invoker("setPostProcessor") // correct Yarn name in 1.21.10
     void invokeSetPostProcessor(Identifier id);
+
+    @Invoker("getPostProcessorId")
+    Identifier invokeGetPostProcessorId();
 }
