@@ -1,7 +1,7 @@
 package net.baconeater.features.commands.visibility;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
@@ -29,14 +29,10 @@ public final class VisibilityCommand {
                                                 EntityArgumentType.getPlayers(context, "viewer"),
                                                 true,
                                                 false,
+                                                true,
                                                 context.getSource()))
-                                        .then(CommandManager.argument("renderOutsideFirstPerson", BoolArgumentType.bool())
-                                                .executes(context -> changeVisibility(
-                                                        EntityArgumentType.getEntities(context, "target"),
-                                                        EntityArgumentType.getPlayers(context, "viewer"),
-                                                        true,
-                                                        BoolArgumentType.getBool(context, "renderOutsideFirstPerson"),
-                                                        context.getSource()))))))
+                                        .then(perspectiveOption("ignore_perspective", true, false))
+                                        .then(perspectiveOption("inline_perspective", true, true)))))
                 .then(CommandManager.literal("enable")
                         .then(CommandManager.argument("target", EntityArgumentType.entities())
                                 .then(CommandManager.argument("viewer", EntityArgumentType.players())
@@ -45,15 +41,42 @@ public final class VisibilityCommand {
                                                 EntityArgumentType.getPlayers(context, "viewer"),
                                                 false,
                                                 false,
+                                                true,
                                                 context.getSource()))
-                                        .then(CommandManager.argument("renderOutsideFirstPerson", BoolArgumentType.bool())
-                                                .executes(context -> changeVisibility(
-                                                        EntityArgumentType.getEntities(context, "target"),
-                                                        EntityArgumentType.getPlayers(context, "viewer"),
-                                                        false,
-                                                        false,
-                                                        context.getSource()))))))
+                                        .then(perspectiveOption("ignore_perspective", false, false))
+                                        .then(perspectiveOption("inline_perspective", false, true)))))
                 );
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> perspectiveOption(
+            String name,
+            boolean hide,
+            boolean renderOutsideFirstPerson) {
+        return CommandManager.literal(name)
+                .executes(context -> changeVisibility(
+                        EntityArgumentType.getEntities(context, "target"),
+                        EntityArgumentType.getPlayers(context, "viewer"),
+                        hide,
+                        renderOutsideFirstPerson,
+                        true,
+                        context.getSource()))
+                .then(passengerOption("render_passengers", hide, renderOutsideFirstPerson, false))
+                .then(passengerOption("hide_passengers", hide, renderOutsideFirstPerson, true));
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> passengerOption(
+            String name,
+            boolean hide,
+            boolean renderOutsideFirstPerson,
+            boolean hidePassengers) {
+        return CommandManager.literal(name)
+                .executes(context -> changeVisibility(
+                        EntityArgumentType.getEntities(context, "target"),
+                        EntityArgumentType.getPlayers(context, "viewer"),
+                        hide,
+                        renderOutsideFirstPerson,
+                        hidePassengers,
+                        context.getSource()));
     }
 
     private static int changeVisibility(
@@ -61,11 +84,12 @@ public final class VisibilityCommand {
             Collection<ServerPlayerEntity> viewers,
             boolean hide,
             boolean renderOutsideFirstPerson,
+            boolean hidePassengers,
             ServerCommandSource source) {
         int total = 0;
         for (ServerPlayerEntity viewer : viewers) {
             for (Entity target : targets) {
-                total += sendVisibilityUpdate(target, viewer, hide, renderOutsideFirstPerson);
+                total += sendVisibilityUpdate(target, viewer, hide, renderOutsideFirstPerson, hidePassengers);
             }
         }
 
@@ -82,15 +106,24 @@ public final class VisibilityCommand {
         return total;
     }
 
-    private static int sendVisibilityUpdate(Entity target, ServerPlayerEntity viewer, boolean hide, boolean renderOutsideFirstPerson) {
+    private static int sendVisibilityUpdate(
+            Entity target,
+            ServerPlayerEntity viewer,
+            boolean hide,
+            boolean renderOutsideFirstPerson,
+            boolean hidePassengers) {
         VisibilityTogglePayload payload = hide
                 ? VisibilityTogglePayload.disable(target.getId(), renderOutsideFirstPerson)
                 : VisibilityTogglePayload.enable(target.getId());
         ServerPlayNetworking.send(viewer, payload);
 
         int count = 1;
+        if (!hidePassengers) {
+            return count;
+        }
+
         for (Entity passenger : target.getPassengerList()) {
-            count += sendVisibilityUpdate(passenger, viewer, hide, renderOutsideFirstPerson);
+            count += sendVisibilityUpdate(passenger, viewer, hide, renderOutsideFirstPerson, true);
         }
         return count;
     }

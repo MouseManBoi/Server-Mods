@@ -63,7 +63,7 @@ public final class ClientVisibilityManager {
             return;
         }
 
-        if (shouldHideInCurrentPerspective(entityId)) {
+        if (shouldHideInCurrentPerspective(entityId) && shouldUseInvisibilityFlag(entity)) {
             hideEntity(entity);
             return;
         }
@@ -76,7 +76,7 @@ public final class ClientVisibilityManager {
             return;
         }
 
-        if (shouldHideInCurrentPerspective(entity.getId())) {
+        if (shouldHideInCurrentPerspective(entity.getId()) && shouldUseInvisibilityFlag(entity)) {
             hideEntity(entity);
             return;
         }
@@ -123,8 +123,15 @@ public final class ClientVisibilityManager {
         return client.options.getPerspective() == Perspective.FIRST_PERSON;
     }
 
+    private static boolean shouldUseInvisibilityFlag(Entity entity) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        return client.player == entity && isFirstPersonPerspective();
+    }
+
     private static void restoreEntityVisibility(Entity entity) {
         Boolean wasInvisible = PREVIOUS_INVISIBILITY.remove(entity.getId());
-        entity.setInvisible(Boolean.TRUE.equals(wasInvisible));
+        if (wasInvisible != null) {
+            entity.setInvisible(wasInvisible);
+        }
     }
 }

@@ -9,6 +9,7 @@
     "EntityDismountMixin",
     "EntityInvoker",
     "EntityPassengerMixin",
+    "LivingEntityPassengerMixin",
     "RideCommandMixin"
   ],
   "client": [

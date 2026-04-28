@@ -2,10 +2,12 @@ package net.baconeater.mixin;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.advancement.criterion.Criteria;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,8 +37,12 @@ public abstract class EntityPassengerMixin {
     @Shadow
     public abstract java.util.stream.Stream<Entity> streamSelfAndPassengers();
 
-    @Shadow
-    public abstract net.minecraft.util.math.Vec3d getEntityPos();
+    @Inject(method = "updatePassengerForDismount", at = @At("HEAD"), cancellable = true)
+    private void keepPlayerPassengerAtMountedPosition(LivingEntity passenger, CallbackInfoReturnable<Vec3d> cir) {
+        if ((Object) this instanceof PlayerEntity) {
+            cir.setReturnValue(passenger.getEntityPos());
+        }
+    }
 
     @Inject(method = "couldAcceptPassenger", at = @At("HEAD"), cancellable = true)
     private void allowPlayersToSupportPassengers(CallbackInfoReturnable<Boolean> cir) {
