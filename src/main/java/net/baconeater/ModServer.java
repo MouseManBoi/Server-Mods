@@ -4,6 +4,8 @@ import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
+import net.baconeater.features.commands.attack.AttackCommand;
+import net.baconeater.features.commands.attack.AttackState;
 import net.baconeater.features.commands.toast.ToastCommand;
 import net.baconeater.features.commands.toast.network.ToastPayload;
 import net.baconeater.features.commands.visibility.VisibilityCommand;
@@ -15,10 +17,12 @@ import net.baconeater.features.commands.perspective.network.PerspectiveRequestPa
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -40,12 +44,19 @@ public class ModServer implements ModInitializer {
 			ServerPlayerEntity player = ctx.player();
 			server.execute(() -> KeybindScoreHandler.handle(server.getScoreboard(), player, payload.action()));
 		});
+		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) ->
+				!isAttackDisabled(source.getAttacker()) && !isAttackDisabled(source.getSource()));
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ShaderCommand.register(dispatcher);
 			HealCommand.register(dispatcher);
 			VisibilityCommand.register(dispatcher);
 			PerspectiveCommand.register(dispatcher);
+			AttackCommand.register(dispatcher);
 			ToastCommand.register(dispatcher, registryAccess);
 		});
+	}
+
+	private static boolean isAttackDisabled(Entity entity) {
+		return entity != null && AttackState.isDisabled(entity);
 	}
 }

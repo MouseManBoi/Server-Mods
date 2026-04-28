@@ -137,21 +137,34 @@ public final class ShaderCommand {
             case ENABLE -> ToggleShaderPayload.enable(shader, state);
             case DISABLE -> ToggleShaderPayload.disable(shader, state);
         };
-        players.forEach(player -> ServerPlayNetworking.send(player, payload));
+        int sentCount = 0;
+        for (ServerPlayerEntity player : players) {
+            if (ServerPlayNetworking.canSend(player, ToggleShaderPayload.ID)) {
+                ServerPlayNetworking.send(player, payload);
+                sentCount++;
+            }
+        }
+
+        int skippedCount = players.size() - sentCount;
         String message = switch (action) {
             case TOGGLE -> "Toggled";
             case ENABLE -> "Enabled";
             case DISABLE -> "Disabled";
         };
+        int finalSentCount = sentCount;
+        int finalSkippedCount = skippedCount;
         source.sendFeedback(
                 () -> Text.literal(message
                         + " shader "
                         + shader
                         + (state.isSpecified() ? " (" + state.commandName() + ")" : "")
                         + " for "
-                        + players.size()
-                        + " player(s)."),
+                        + finalSentCount
+                        + " player(s)"
+                        + (finalSkippedCount > 0
+                        ? "; skipped " + finalSkippedCount + " unsupported player(s)."
+                        : ".")),
                 true);
-        return players.size();
+        return sentCount;
     }
 }

@@ -1,17 +1,14 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.shader.ShaderState;
-import net.baconeater.features.commands.shader.client.ShaderContextManager;
+import net.baconeater.features.commands.shader.client.ClientShaderManager;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
-import net.baconeater.features.commands.shader.client.ShaderTimeUniforms;
 import net.baconeater.features.commands.toast.client.ClientToast;
 import net.baconeater.features.commands.toast.network.ToastPayload;
 import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
 import net.baconeater.features.keybinds.payload.KeybindC2S;
-import net.baconeater.features.commands.perspective.PerspectiveState;
 import net.baconeater.features.commands.perspective.network.PerspectiveRequestPayload;
-import net.baconeater.mixin.GameRendererInvoker;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -30,10 +27,6 @@ import org.lwjgl.glfw.GLFW;
 
 
 public class ModClient implements ClientModInitializer {
-    private static final Identifier CREEPER_CHAIN_NEW  = Identifier.of("minecraft", "creeper");
-    private static final Identifier CREEPER_CHAIN_OLD  = Identifier.of("minecraft", "shaders/post/creeper.json");
-    private Identifier activeShader = null;
-    private ShaderState activeShaderState = ShaderState.NONE;
     private static KeyBinding customAbilityToggle, customAbilityMove1, customAbilityMove2, customAbilityMove3, customAbilityMove4;
     private static final KeyBinding.Category CATEGORY = KeyBinding.Category.create(Identifier.of("keybinds", "abilities"));
 
@@ -54,8 +47,7 @@ public class ModClient implements ClientModInitializer {
                         .add(new ClientToast(payload.icon(), payload.title(), payload.subtitle()))));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             ClientVisibilityManager.clear();
-            ShaderTimeUniforms.onShaderDisabled();
-            ShaderContextManager.onShaderDisabled();
+            ClientShaderManager.clear();
         });
 
         // === Keybinds you already had ===
@@ -78,106 +70,47 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
 
             ClientVisibilityManager.tick(client);
-            if (activeShader != null && !isShaderActiveInRenderer(client, activeShader)) {
-                enableShader(client, activeShader);
-            }
-            if (activeShader != null && ShaderContextManager.shouldDisableAfterAnimation(activeShader)) {
-                if (disableShader(client)) {
-                    activeShader = null;
-                    activeShaderState = ShaderState.NONE;
-                    ShaderTimeUniforms.onShaderDisabled();
-                    ShaderContextManager.onShaderDisabled();
-                }
-            }
+            ClientShaderManager.tick();
         });
     }
 
     private void handlePayload(MinecraftClient client, ToggleShaderPayload payload) {
-        if (client == null) {
+        try {
+            if (client == null) {
+                return;
+            }
+            Identifier shaderId = payload.shaderId();
+            ShaderState shaderState = payload.state();
+            switch (payload.action()) {
+                case ENABLE -> ClientShaderManager.enableShader(client, shaderId, shaderState);
+                case DISABLE -> disableShader(shaderId, shaderState);
+                case TOGGLE -> toggleShader(client, shaderId, shaderState);
+            }
+        } catch (Throwable ignored) {
+            ClientShaderManager.clear();
+        }
+    }
+
+    private void toggleShader(MinecraftClient client, Identifier shaderId, ShaderState shaderState) {
+        if (!ClientShaderManager.isActive(shaderId)) {
+            ClientShaderManager.enableShader(client, shaderId, shaderState);
             return;
         }
-        boolean enable;
-        Identifier shaderId = payload.shaderId();
-        ShaderState shaderState = payload.state();
-        switch (payload.action()) {
-            case ENABLE -> enable = true;
-            case DISABLE -> enable = false;
-            case TOGGLE -> enable = !shaderId.equals(activeShader);
-            default -> throw new IllegalStateException("Unhandled shader action: " + payload.action());
-        }
 
-        if (payload.action() == ToggleShaderPayload.ShaderAction.TOGGLE
-                && shaderId.equals(activeShader)
-                && shaderState == ShaderState.OUT) {
-            enable = true;
-        }
-
-        boolean success;
-        if (enable) {
-            success = enableShader(client, shaderId);
-        } else {
-            success = disableShader(client);
-        }
-        if (success) {
-            activeShader = enable ? shaderId : null;
-            if (enable) {
-                activeShaderState = shaderState;
-                ShaderTimeUniforms.onShaderEnabled();
-                ShaderContextManager.onShaderEnabled(shaderId, shaderState);
-            } else {
-                activeShaderState = ShaderState.NONE;
-                ShaderTimeUniforms.onShaderDisabled();
-                ShaderContextManager.onShaderDisabled();
-            }
-        }
+        disableShader(shaderId, shaderState);
     }
 
-    private boolean enableShader(MinecraftClient client, Identifier shaderId) {
-        if (client == null || client.gameRenderer == null) {
-            return false;
+    private void disableShader(Identifier shaderId, ShaderState shaderState) {
+        if (shaderState == ShaderState.OUT && ClientShaderManager.startShaderOut(shaderId)) {
+            return;
         }
-        try {
-            ((GameRendererInvoker) client.gameRenderer).invokeSetPostProcessor(shaderId);
-            return true;
-        } catch (Throwable original) {
-            // Fallback for creeper shader to older resource path
-            if (shaderId.equals(CREEPER_CHAIN_NEW)) {
-                try {
-                    ((GameRendererInvoker) client.gameRenderer).invokeSetPostProcessor(CREEPER_CHAIN_OLD);
-                    return true;
-                } catch (Throwable ignored) {
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean isShaderActiveInRenderer(MinecraftClient client, Identifier shaderId) {
-        if (client == null || client.gameRenderer == null || shaderId == null) {
-            return false;
-        }
-        Identifier currentShader = ((GameRendererInvoker) client.gameRenderer).invokeGetPostProcessorId();
-        if (currentShader == null) {
-            return false;
-        }
-        return currentShader.equals(shaderId)
-                || (shaderId.equals(CREEPER_CHAIN_NEW) && currentShader.equals(CREEPER_CHAIN_OLD));
-    }
-
-
-    private boolean disableShader(MinecraftClient client) {
-        if (client == null || client.gameRenderer == null) {
-            return false;
-        }
-        client.gameRenderer.clearPostProcessor(); // hard OFF
-        return true;
+        ClientShaderManager.disableShader(shaderId);
     }
 
     private void handlePerspectiveRequest(MinecraftClient client, PerspectiveRequestPayload payload) {
         if (client == null || client.options == null) {
             return;
         }
-        Identifier shaderToRestore = activeShader;
         Perspective newPerspective = switch (payload.state()) {
             case FIRST -> Perspective.FIRST_PERSON;
             case SECOND -> Perspective.THIRD_PERSON_BACK;
@@ -185,8 +118,5 @@ public class ModClient implements ClientModInitializer {
         };
 
         client.options.setPerspective(newPerspective);
-        if (shaderToRestore != null && !isShaderActiveInRenderer(client, shaderToRestore)) {
-            enableShader(client, shaderToRestore);
-        }
     }
 }
