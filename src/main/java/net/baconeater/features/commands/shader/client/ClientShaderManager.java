@@ -26,13 +26,17 @@ public final class ClientShaderManager {
         return ACTIVE_SHADERS.containsKey(shaderId);
     }
 
-    public static synchronized boolean enableShader(MinecraftClient client, Identifier shaderId, ShaderState state) {
+    public static synchronized boolean enableShader(
+            MinecraftClient client,
+            Identifier shaderId,
+            ShaderState state,
+            boolean renderOnTop) {
         Identifier renderId = getRenderableShaderId(client, shaderId);
         if (renderId == null) {
             return false;
         }
 
-        ACTIVE_SHADERS.put(shaderId, new ActiveShader(shaderId, renderId));
+        addActiveShader(new ActiveShader(shaderId, renderId), renderOnTop);
         ShaderTimeUniforms.onShaderEnabled();
         ShaderContextManager.onShaderEnabled(shaderId, state);
         return true;
@@ -78,7 +82,6 @@ public final class ClientShaderManager {
         synchronized (ClientShaderManager.class) {
             shaders = new ArrayList<>(ACTIVE_SHADERS.values());
         }
-        shaders.sort((left, right) -> Boolean.compare(isCinematicBarsShader(left.shaderId()), isCinematicBarsShader(right.shaderId())));
 
         List<Identifier> failedShaders = new ArrayList<>();
         for (ActiveShader activeShader : shaders) {
@@ -101,8 +104,18 @@ public final class ClientShaderManager {
         }
     }
 
-    private static boolean isCinematicBarsShader(Identifier shaderId) {
-        return shaderId != null && shaderId.getPath().contains("cinematic_bars");
+    private static void addActiveShader(ActiveShader activeShader, boolean renderOnTop) {
+        ACTIVE_SHADERS.remove(activeShader.shaderId());
+        if (renderOnTop) {
+            ACTIVE_SHADERS.put(activeShader.shaderId(), activeShader);
+            return;
+        }
+
+        Map<Identifier, ActiveShader> reorderedShaders = new LinkedHashMap<>();
+        reorderedShaders.put(activeShader.shaderId(), activeShader);
+        reorderedShaders.putAll(ACTIVE_SHADERS);
+        ACTIVE_SHADERS.clear();
+        ACTIVE_SHADERS.putAll(reorderedShaders);
     }
 
     private static Identifier getRenderableShaderId(MinecraftClient client, Identifier shaderId) {

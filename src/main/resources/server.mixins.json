@@ -10,7 +10,8 @@
     "EntityInvoker",
     "EntityPassengerMixin",
     "LivingEntityPassengerMixin",
-    "RideCommandMixin"
+    "RideCommandMixin",
+    "ServerWorldMixin"
   ],
   "client": [
     "GameRendererInvoker",

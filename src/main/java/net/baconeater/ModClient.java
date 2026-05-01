@@ -81,19 +81,20 @@ public class ModClient implements ClientModInitializer {
             }
             Identifier shaderId = payload.shaderId();
             ShaderState shaderState = payload.state();
+            boolean renderOnTop = payload.renderOnTop();
             switch (payload.action()) {
-                case ENABLE -> ClientShaderManager.enableShader(client, shaderId, shaderState);
+                case ENABLE -> ClientShaderManager.enableShader(client, shaderId, shaderState, renderOnTop);
                 case DISABLE -> disableShader(shaderId, shaderState);
-                case TOGGLE -> toggleShader(client, shaderId, shaderState);
+                case TOGGLE -> toggleShader(client, shaderId, shaderState, renderOnTop);
             }
         } catch (Throwable ignored) {
             ClientShaderManager.clear();
         }
     }
 
-    private void toggleShader(MinecraftClient client, Identifier shaderId, ShaderState shaderState) {
+    private void toggleShader(MinecraftClient client, Identifier shaderId, ShaderState shaderState, boolean renderOnTop) {
         if (!ClientShaderManager.isActive(shaderId)) {
-            ClientShaderManager.enableShader(client, shaderId, shaderState);
+            ClientShaderManager.enableShader(client, shaderId, shaderState, renderOnTop);
             return;
         }
 

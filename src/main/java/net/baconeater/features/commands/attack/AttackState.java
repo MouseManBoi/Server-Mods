@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class AttackState {
     private static final Set<UUID> DISABLED_ATTACKERS = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> DISABLED_HURT_TINTS = ConcurrentHashMap.newKeySet();
 
     private AttackState() {
     }
@@ -22,5 +23,17 @@ public final class AttackState {
 
     public static boolean isDisabled(Entity entity) {
         return DISABLED_ATTACKERS.contains(entity.getUuid());
+    }
+
+    public static void setHurtTintDisabled(Entity entity, boolean disabled) {
+        if (disabled) {
+            DISABLED_HURT_TINTS.add(entity.getUuid());
+        } else {
+            DISABLED_HURT_TINTS.remove(entity.getUuid());
+        }
+    }
+
+    public static boolean isHurtTintDisabled(Entity entity) {
+        return DISABLED_HURT_TINTS.contains(entity.getUuid());
     }
 }
