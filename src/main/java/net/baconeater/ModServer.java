@@ -1,6 +1,8 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.heal.HealCommand;
+import net.baconeater.features.commands.convert.ConvertCommand;
+import net.baconeater.features.commands.convert.ConvertState;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
@@ -45,10 +47,13 @@ public class ModServer implements ModInitializer {
 			server.execute(() -> KeybindScoreHandler.handle(server.getScoreboard(), player, payload.action()));
 		});
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) ->
-				!isAttackDisabled(source.getAttacker()) && !isAttackDisabled(source.getSource()));
+				!isAttackDisabled(source.getAttacker())
+						&& !isAttackDisabled(source.getSource())
+						&& ConvertState.applyConvertedDamage(entity, source, amount));
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ShaderCommand.register(dispatcher);
 			HealCommand.register(dispatcher);
+			ConvertCommand.register(dispatcher);
 			VisibilityCommand.register(dispatcher);
 			PerspectiveCommand.register(dispatcher);
 			AttackCommand.register(dispatcher);
