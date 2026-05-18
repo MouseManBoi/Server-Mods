@@ -3,6 +3,8 @@ package net.baconeater;
 import net.baconeater.features.commands.heal.HealCommand;
 import net.baconeater.features.commands.convert.ConvertCommand;
 import net.baconeater.features.commands.convert.ConvertState;
+import net.baconeater.features.commands.playsound.PlaySoundOffsetCommand;
+import net.baconeater.features.commands.playsound.network.PlaySoundOffsetPayload;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
@@ -35,6 +37,7 @@ public class ModServer implements ModInitializer {
 		// === Networking ===
 		// C2S: keybind actions from client
 		PayloadTypeRegistry.playC2S().register(KeybindC2S.ID, KeybindC2S.CODEC);
+		PayloadTypeRegistry.playS2C().register(PlaySoundOffsetPayload.ID, PlaySoundOffsetPayload.CODEC);
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
 			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
 			PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
@@ -58,6 +61,7 @@ public class ModServer implements ModInitializer {
 			PerspectiveCommand.register(dispatcher);
 			AttackCommand.register(dispatcher);
 			ToastCommand.register(dispatcher, registryAccess);
+			PlaySoundOffsetCommand.register(dispatcher);
 		});
 	}
 

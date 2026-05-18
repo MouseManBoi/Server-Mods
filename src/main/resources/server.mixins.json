@@ -6,10 +6,12 @@
   "injectors": { "defaultRequire": 1 },
   "mixins": [
     "EntityAccessor",
+    "CommandNodeAccessor",
     "EntityDismountMixin",
     "EntityInvoker",
     "EntityPassengerMixin",
     "LivingEntityPassengerMixin",
+    "PlaySoundCommandMixin",
     "RideCommandMixin",
     "ServerWorldMixin"
   ],
@@ -18,6 +20,8 @@
     "GameRendererMixin",
     "EntityRenderManagerMixin",
     "EntityTrackedDataMixin",
-    "PostEffectPassMixin"
+    "PostEffectPassMixin",
+    "SourceAccessor",
+    "SoundSystemMixin"
   ]
 }

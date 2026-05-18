@@ -1,6 +1,8 @@
 package net.baconeater;
 
 import net.baconeater.features.commands.shader.ShaderState;
+import net.baconeater.features.commands.playsound.client.OffsetPositionedSoundInstance;
+import net.baconeater.features.commands.playsound.network.PlaySoundOffsetPayload;
 import net.baconeater.features.commands.shader.client.ClientShaderManager;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.commands.toast.client.ClientToast;
@@ -18,11 +20,13 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.InputUtil;
 
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.random.Random;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -38,6 +42,8 @@ public class ModClient implements ClientModInitializer {
         PayloadTypeRegistry.playS2C().register(ToastPayload.ID, ToastPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(ToggleShaderPayload.ID, (payload, context) ->
                 context.client().execute(() -> handlePayload(context.client(), payload)));
+        ClientPlayNetworking.registerGlobalReceiver(PlaySoundOffsetPayload.ID, (payload, context) ->
+                context.client().execute(() -> handlePlaySoundOffset(context.client(), payload)));
         ClientPlayNetworking.registerGlobalReceiver(VisibilityTogglePayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientVisibilityManager.handlePayload(payload)));
         ClientPlayNetworking.registerGlobalReceiver(PerspectiveRequestPayload.ID, (payload, context) ->
@@ -90,6 +96,25 @@ public class ModClient implements ClientModInitializer {
         } catch (Throwable ignored) {
             ClientShaderManager.clear();
         }
+    }
+
+    private void handlePlaySoundOffset(MinecraftClient client, PlaySoundOffsetPayload payload) {
+        if (client == null || client.getSoundManager() == null) {
+            return;
+        }
+
+        client.getSoundManager().play(new OffsetPositionedSoundInstance(
+                payload.soundId(),
+                payload.category(),
+                payload.volume(),
+                payload.pitch(),
+                Random.create(payload.seed()),
+                SoundInstance.AttenuationType.LINEAR,
+                payload.pos().x,
+                payload.pos().y,
+                payload.pos().z,
+                payload.seconds()
+        ));
     }
 
     private void toggleShader(MinecraftClient client, Identifier shaderId, ShaderState shaderState, boolean renderOnTop) {
