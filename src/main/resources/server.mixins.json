@@ -18,6 +18,7 @@
   "client": [
     "GameRendererInvoker",
     "GameRendererMixin",
+    "MinecraftClientSoundMixin",
     "EntityRenderManagerMixin",
     "EntityTrackedDataMixin",
     "PostEffectPassMixin",
