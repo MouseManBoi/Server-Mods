@@ -73,9 +73,17 @@ public final class SkinCommand {
 
         int finalSaved = saved;
         int finalSkipped = skipped;
+        if (saved == 0) {
+            try {
+                Files.deleteIfExists(skinPath);
+            } catch (IOException ignored) {
+                // Leaving a stale fetched skin is worse than failing quietly, but command feedback covers the miss.
+            }
+        }
         source.sendFeedback(
                 () -> Text.literal("Fetched " + finalSaved + " skin(s) to " + skinPath
-                        + (finalSkipped > 0 ? "; skipped " + finalSkipped + " target(s)." : ".")),
+                        + (finalSkipped > 0 ? "; skipped " + finalSkipped + " target(s)" : "")
+                        + (finalSaved == 0 ? "; cleared fetched skin so the shader uses fallback." : ".")),
                 true);
         return saved;
     }
