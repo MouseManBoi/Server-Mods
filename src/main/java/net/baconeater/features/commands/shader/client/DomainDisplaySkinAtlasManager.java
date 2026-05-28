@@ -43,6 +43,7 @@ public final class DomainDisplaySkinAtlasManager {
     private static String registeredAtlasKey;
     private static long registeredAtlasGeneration;
     private static long nextPreloadAttemptNanos;
+    private static String lastPreloadAttemptKey;
 
     private DomainDisplaySkinAtlasManager() {
     }
@@ -56,17 +57,19 @@ public final class DomainDisplaySkinAtlasManager {
         try {
             migrateLegacySkinFiles(client);
             Path skinPath = activeSkinPath(client);
-            copyActiveSkin(client, skinPath);
+            copyActiveSkin(client, skinPath, false);
             String skinHash = hashFile(skinPath);
-            if (skinHash.equals(registeredAtlasKey) || IN_FLIGHT.containsKey(skinHash)) {
+            if (skinHash.equals(registeredAtlasKey) || skinHash.equals(lastPreloadAttemptKey) || IN_FLIGHT.containsKey(skinHash)) {
                 return;
             }
 
             Path cachedAtlas = atlasPath(client, skinHash);
             if (Files.isRegularFile(cachedAtlas)) {
-                LOGGER.info("Preloading cached domain popup atlas {}", cachedAtlas);
+                lastPreloadAttemptKey = skinHash;
                 scheduleAtlasRegistration(client, skinHash, cachedAtlas, null);
+                return;
             }
+            lastPreloadAttemptKey = skinHash;
         } catch (Throwable ignored) {
             // The command path still handles missing skins/fallbacks; preload is only an optimization.
         }
@@ -90,7 +93,7 @@ public final class DomainDisplaySkinAtlasManager {
         try {
             migrateLegacySkinFiles(client);
             skinPath = activeSkinPath(client);
-            copyActiveSkin(client, skinPath);
+            copyActiveSkin(client, skinPath, true);
             skinHash = hashFile(skinPath);
             cachedAtlas = atlasPath(client, skinHash);
             if (skinHash.equals(registeredAtlasKey)) {
@@ -138,6 +141,8 @@ public final class DomainDisplaySkinAtlasManager {
         INVALIDATED_POST_EFFECT_GENERATIONS.clear();
         registeredAtlasKey = null;
         registeredAtlasGeneration++;
+        lastPreloadAttemptKey = null;
+        nextPreloadAttemptNanos = 0;
     }
 
     public static boolean shouldInvalidateCachedPostEffect(Identifier shaderId) {
@@ -163,7 +168,7 @@ public final class DomainDisplaySkinAtlasManager {
         return path.contains("domain_display") || path.contains("domain_popup");
     }
 
-    private static void copyActiveSkin(MinecraftClient client, Path skinPath) throws IOException {
+    private static void copyActiveSkin(MinecraftClient client, Path skinPath, boolean logSource) throws IOException {
         migrateLegacySkinFiles(client);
         Path source = fetchedSkinPath(client);
         if (!Files.isRegularFile(source)) {
@@ -183,7 +188,9 @@ public final class DomainDisplaySkinAtlasManager {
             source = fallbackSkinPath(client);
         }
         Files.copy(source, skinPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        LOGGER.info("Using domain popup skin source {}", source);
+        if (logSource) {
+            LOGGER.info("Using domain popup skin source {}", source);
+        }
     }
 
     private static void renderAtlas(MinecraftClient client, Path skinPath, Path atlasPath) throws IOException, InterruptedException {
