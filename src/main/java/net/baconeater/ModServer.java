@@ -7,6 +7,7 @@ import net.baconeater.features.commands.playsound.PlaySoundOffsetCommand;
 import net.baconeater.features.commands.playsound.network.PlaySoundOffsetPayload;
 import net.baconeater.features.commands.perspective.PerspectiveCommand;
 import net.baconeater.features.commands.shader.ShaderCommand;
+import net.baconeater.features.commands.skin.SkinCommand;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.commands.attack.AttackCommand;
 import net.baconeater.features.commands.attack.AttackState;
@@ -60,6 +61,7 @@ public class ModServer implements ModInitializer {
 			VisibilityCommand.register(dispatcher);
 			PerspectiveCommand.register(dispatcher);
 			AttackCommand.register(dispatcher);
+			SkinCommand.register(dispatcher);
 			ToastCommand.register(dispatcher, registryAccess);
 			PlaySoundOffsetCommand.register(dispatcher);
 		});

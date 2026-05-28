@@ -233,12 +233,12 @@ public final class ShaderCommand {
             ToggleShaderPayload.ShaderAction action,
             ShaderState state,
             boolean renderOnTop) {
+        int sentCount = 0;
         ToggleShaderPayload payload = switch (action) {
             case TOGGLE -> ToggleShaderPayload.toggle(shader, state, renderOnTop);
             case ENABLE -> ToggleShaderPayload.enable(shader, state, renderOnTop);
             case DISABLE -> ToggleShaderPayload.disable(shader, state, renderOnTop);
         };
-        int sentCount = 0;
         for (ServerPlayerEntity player : players) {
             if (ServerPlayNetworking.canSend(player, ToggleShaderPayload.ID)) {
                 ServerPlayNetworking.send(player, payload);

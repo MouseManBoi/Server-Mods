@@ -4,6 +4,7 @@ import net.baconeater.features.commands.shader.ShaderState;
 import net.baconeater.features.commands.playsound.client.OffsetPositionedSoundInstance;
 import net.baconeater.features.commands.playsound.network.PlaySoundOffsetPayload;
 import net.baconeater.features.commands.shader.client.ClientShaderManager;
+import net.baconeater.features.commands.shader.client.DomainDisplaySkinAtlasManager;
 import net.baconeater.features.commands.shader.network.ToggleShaderPayload;
 import net.baconeater.features.commands.toast.client.ClientToast;
 import net.baconeater.features.commands.toast.network.ToastPayload;
@@ -54,6 +55,7 @@ public class ModClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             ClientVisibilityManager.clear();
             ClientShaderManager.clear();
+            DomainDisplaySkinAtlasManager.clear();
         });
 
         // === Keybinds you already had ===
@@ -75,6 +77,7 @@ public class ModClient implements ClientModInitializer {
             while (customAbilityMove3.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(3));
             while (customAbilityMove4.wasPressed())  ClientPlayNetworking.send(new KeybindC2S(4));
 
+            DomainDisplaySkinAtlasManager.preloadCurrentPlayer(client);
             ClientVisibilityManager.tick(client);
             ClientShaderManager.tick();
         });
@@ -89,7 +92,9 @@ public class ModClient implements ClientModInitializer {
             ShaderState shaderState = payload.state();
             boolean renderOnTop = payload.renderOnTop();
             switch (payload.action()) {
-                case ENABLE -> ClientShaderManager.enableShader(client, shaderId, shaderState, renderOnTop);
+                case ENABLE -> {
+                    enableShader(client, shaderId, shaderState, renderOnTop);
+                }
                 case DISABLE -> disableShader(shaderId, shaderState);
                 case TOGGLE -> toggleShader(client, shaderId, shaderState, renderOnTop);
             }
@@ -117,13 +122,28 @@ public class ModClient implements ClientModInitializer {
         ));
     }
 
-    private void toggleShader(MinecraftClient client, Identifier shaderId, ShaderState shaderState, boolean renderOnTop) {
+    private void toggleShader(
+            MinecraftClient client,
+            Identifier shaderId,
+            ShaderState shaderState,
+            boolean renderOnTop) {
         if (!ClientShaderManager.isActive(shaderId)) {
-            ClientShaderManager.enableShader(client, shaderId, shaderState, renderOnTop);
+            enableShader(client, shaderId, shaderState, renderOnTop);
             return;
         }
 
         disableShader(shaderId, shaderState);
+    }
+
+    private void enableShader(
+            MinecraftClient client,
+            Identifier shaderId,
+            ShaderState shaderState,
+            boolean renderOnTop) {
+        DomainDisplaySkinAtlasManager.prepareThenRun(
+                client,
+                shaderId,
+                () -> ClientShaderManager.enableShader(client, shaderId, shaderState, renderOnTop));
     }
 
     private void disableShader(Identifier shaderId, ShaderState shaderState) {

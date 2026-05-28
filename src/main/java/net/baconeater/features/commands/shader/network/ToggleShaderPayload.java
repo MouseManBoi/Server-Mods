@@ -32,15 +32,24 @@ public record ToggleShaderPayload(
         }
     };
 
-    public static ToggleShaderPayload toggle(Identifier shaderId, ShaderState state, boolean renderOnTop) {
+    public static ToggleShaderPayload toggle(
+            Identifier shaderId,
+            ShaderState state,
+            boolean renderOnTop) {
         return new ToggleShaderPayload(shaderId, ShaderAction.TOGGLE, state, renderOnTop);
     }
 
-    public static ToggleShaderPayload enable(Identifier shaderId, ShaderState state, boolean renderOnTop) {
+    public static ToggleShaderPayload enable(
+            Identifier shaderId,
+            ShaderState state,
+            boolean renderOnTop) {
         return new ToggleShaderPayload(shaderId, ShaderAction.ENABLE, state, renderOnTop);
     }
 
-    public static ToggleShaderPayload disable(Identifier shaderId, ShaderState state, boolean renderOnTop) {
+    public static ToggleShaderPayload disable(
+            Identifier shaderId,
+            ShaderState state,
+            boolean renderOnTop) {
         return new ToggleShaderPayload(shaderId, ShaderAction.DISABLE, state, renderOnTop);
     }
 

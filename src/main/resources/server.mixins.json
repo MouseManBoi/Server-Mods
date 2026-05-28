@@ -22,6 +22,7 @@
     "EntityRenderManagerMixin",
     "EntityTrackedDataMixin",
     "PostEffectPassMixin",
+    "ShaderLoaderCacheMixin",
     "SourceAccessor",
     "SoundSystemMixin"
   ]
