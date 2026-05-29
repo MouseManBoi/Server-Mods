@@ -83,6 +83,8 @@ public final class ClientShaderManager {
             shaders = new ArrayList<>(ACTIVE_SHADERS.values());
         }
 
+        DomainDisplaySkinAtlasManager.renderRuntimeAnimation(client);
+
         List<Identifier> failedShaders = new ArrayList<>();
         for (ActiveShader activeShader : shaders) {
             try {

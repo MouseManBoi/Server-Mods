@@ -48,6 +48,14 @@ public final class DomainDisplaySkinAtlasManager {
     private static long registeredAtlasGeneration;
     private static long nextPreloadAttemptNanos;
     private static String lastPreloadAttemptKey;
+    private static NativeImage runtimeSkinImage;
+    private static String runtimeSkinKey;
+    private static long animationStartNanos;
+    private static int lastAnimationFrame = -1;
+    private static NativeImageBackedTexture playerSamplerTexture;
+    private static NativeImageBackedTexture playerSamplerResourceTexture;
+    private static DomainDisplayGltfRenderer gltfRenderer;
+    private static long gltfRendererModifiedMillis = -1;
 
     private DomainDisplaySkinAtlasManager() {
     }
@@ -91,6 +99,7 @@ public final class DomainDisplaySkinAtlasManager {
             skinPath = activeSkinSource(client);
             skinHash = runtimeSkinKey(skinPath);
             if (skinHash.equals(registeredAtlasKey)) {
+                restartAnimation();
                 action.run();
                 return;
             }
@@ -101,7 +110,39 @@ public final class DomainDisplaySkinAtlasManager {
             return;
         }
 
+        restartAnimation();
         action.run();
+    }
+
+    private static void restartAnimation() {
+        animationStartNanos = System.nanoTime();
+        lastAnimationFrame = -1;
+    }
+
+
+    public static void renderRuntimeAnimation(MinecraftClient client) {
+        if (client == null || runtimeSkinImage == null || runtimeSkinKey == null) {
+            return;
+        }
+
+        long now = System.nanoTime();
+        if (animationStartNanos == 0) {
+            animationStartNanos = now;
+        }
+
+        float elapsedSeconds = (now - animationStartNanos) / 1_000_000_000.0f;
+        int frame = (int) (elapsedSeconds * 60.0f);
+        if (frame == lastAnimationFrame) {
+            return;
+        }
+
+        lastAnimationFrame = frame;
+        try {
+            NativeImage player = renderRuntimePlayerTexture(client, runtimeSkinImage, elapsedSeconds);
+            registerAtlas(client, player);
+        } catch (Throwable throwable) {
+            LOGGER.info("Could not update domain popup runtime animation", throwable);
+        }
     }
 
     public static void clear() {
@@ -111,6 +152,15 @@ public final class DomainDisplaySkinAtlasManager {
         registeredAtlasGeneration++;
         lastPreloadAttemptKey = null;
         nextPreloadAttemptNanos = 0;
+        runtimeSkinKey = null;
+        animationStartNanos = 0;
+        lastAnimationFrame = -1;
+        if (runtimeSkinImage != null) {
+            runtimeSkinImage.close();
+            runtimeSkinImage = null;
+        }
+        gltfRenderer = null;
+        gltfRendererModifiedMillis = -1;
     }
 
     public static boolean shouldInvalidateCachedPostEffect(Identifier shaderId) {
@@ -140,7 +190,18 @@ public final class DomainDisplaySkinAtlasManager {
         try (InputStream stream = Files.newInputStream(skinPath)) {
             NativeImage skin = NativeImage.read(stream);
             try {
-                NativeImage player = renderFrontFacingPlayer(skin);
+                if (!skinKey.equals(runtimeSkinKey)) {
+                    if (runtimeSkinImage != null) {
+                        runtimeSkinImage.close();
+                    }
+                    runtimeSkinImage = new NativeImage(skin.getWidth(), skin.getHeight(), false);
+                    runtimeSkinImage.copyFrom(skin);
+                    runtimeSkinKey = skinKey;
+                    animationStartNanos = System.nanoTime();
+                    lastAnimationFrame = -1;
+                }
+
+                NativeImage player = renderRuntimePlayerTexture(client, skin, 0.0f);
                 registerAtlas(client, new PreparedAtlas(skinKey, player));
             } finally {
                 skin.close();
@@ -148,37 +209,79 @@ public final class DomainDisplaySkinAtlasManager {
         }
     }
 
-    private static NativeImage renderFrontFacingPlayer(NativeImage skin) {
+    private static NativeImage renderRuntimePlayerTexture(MinecraftClient client, NativeImage skin, float time) {
+        DomainDisplayGltfRenderer renderer = getGltfRenderer(client);
+        if (renderer != null) {
+            return renderer.render(skin, RUNTIME_TEXTURE_SIZE, time);
+        }
+        return renderFrontFacingPlayer(skin, time);
+    }
+
+    private static DomainDisplayGltfRenderer getGltfRenderer(MinecraftClient client) {
+        try {
+            Path model = modelPath(client);
+            if (!Files.isRegularFile(model)) {
+                return null;
+            }
+
+            long modifiedMillis = Files.getLastModifiedTime(model).toMillis();
+            if (gltfRenderer != null && gltfRendererModifiedMillis == modifiedMillis) {
+                return gltfRenderer;
+            }
+
+            gltfRenderer = DomainDisplayGltfRenderer.load(model);
+            gltfRendererModifiedMillis = modifiedMillis;
+            LOGGER.info("Loaded domain popup Blockbench model {}", model);
+            return gltfRenderer;
+        } catch (Throwable throwable) {
+            gltfRenderer = null;
+            gltfRendererModifiedMillis = -1;
+            LOGGER.info("Could not load domain popup Blockbench model; using 2D fallback", throwable);
+            return null;
+        }
+    }
+
+    private static NativeImage renderFrontFacingPlayer(NativeImage skin, float time) {
         NativeImage image = new NativeImage(RUNTIME_TEXTURE_SIZE, RUNTIME_TEXTURE_SIZE, false);
         clear(image);
 
         int scale = 6;
         int centerX = RUNTIME_TEXTURE_SIZE / 2;
-        int top = 22;
-        int headX = centerX - 4 * scale;
-        int headY = top;
-        int bodyX = centerX - 4 * scale;
-        int bodyY = headY + 8 * scale;
-        int rightArmX = bodyX - 4 * scale;
-        int leftArmX = bodyX + 8 * scale;
-        int armY = bodyY;
-        int rightLegX = centerX - 4 * scale;
-        int leftLegX = centerX;
-        int legY = bodyY + 12 * scale;
+        float phase = (float) Math.sin(time * Math.PI * 2.0 / 1.15);
+        float settle = Math.min(time / 0.18f, 1.0f);
+        float bob = (float) Math.sin(time * Math.PI * 2.0 / 0.58) * 2.0f * settle;
+        float bodyAngle = -0.18f + phase * 0.045f * settle;
+        float headAngle = bodyAngle * 0.55f - phase * 0.050f * settle;
+        float rightArmAngle = -0.82f + phase * 0.120f * settle;
+        float leftArmAngle = 0.60f - phase * 0.100f * settle;
+        float rightLegAngle = 0.08f - phase * 0.045f * settle;
+        float leftLegAngle = -0.06f + phase * 0.045f * settle;
 
-        drawSkinPart(image, skin, 8, 8, 8, 8, headX, headY, scale, false);
-        drawSkinPart(image, skin, 20, 20, 8, 12, bodyX, bodyY, scale, false);
-        drawSkinPart(image, skin, 44, 20, 4, 12, rightArmX, armY, scale, false);
-        drawSkinPart(image, skin, 36, 52, 4, 12, leftArmX, armY, scale, false);
-        drawSkinPart(image, skin, 4, 20, 4, 12, rightLegX, legY, scale, false);
-        drawSkinPart(image, skin, 20, 52, 4, 12, leftLegX, legY, scale, false);
+        float bodyPivotX = centerX;
+        float bodyPivotY = 82.0f + bob;
+        float headPivotX = bodyPivotX;
+        float headPivotY = bodyPivotY - 1.0f * scale;
+        float rightArmPivotX = bodyPivotX - 4.0f * scale;
+        float rightArmPivotY = bodyPivotY;
+        float leftArmPivotX = bodyPivotX + 4.0f * scale;
+        float leftArmPivotY = bodyPivotY;
+        float rightLegPivotX = bodyPivotX - 2.0f * scale;
+        float leftLegPivotX = bodyPivotX + 2.0f * scale;
+        float legPivotY = bodyPivotY + 12.0f * scale;
 
-        drawSkinPart(image, skin, 40, 8, 8, 8, headX, headY, scale, true);
-        drawSkinPart(image, skin, 20, 36, 8, 12, bodyX, bodyY, scale, true);
-        drawSkinPart(image, skin, 44, 36, 4, 12, rightArmX, armY, scale, true);
-        drawSkinPart(image, skin, 52, 52, 4, 12, leftArmX, armY, scale, true);
-        drawSkinPart(image, skin, 4, 36, 4, 12, rightLegX, legY, scale, true);
-        drawSkinPart(image, skin, 4, 52, 4, 12, leftLegX, legY, scale, true);
+        drawSkinPart(image, skin, 20, 20, 8, 12, bodyPivotX, bodyPivotY, 4.0f, 0.0f, scale, bodyAngle, false);
+        drawSkinPart(image, skin, 4, 20, 4, 12, rightLegPivotX, legPivotY, 2.0f, 0.0f, scale, rightLegAngle, false);
+        drawSkinPart(image, skin, 20, 52, 4, 12, leftLegPivotX, legPivotY, 2.0f, 0.0f, scale, leftLegAngle, false);
+        drawSkinPart(image, skin, 44, 20, 4, 12, rightArmPivotX, rightArmPivotY, 2.0f, 0.0f, scale, rightArmAngle, false);
+        drawSkinPart(image, skin, 36, 52, 4, 12, leftArmPivotX, leftArmPivotY, 2.0f, 0.0f, scale, leftArmAngle, false);
+        drawSkinPart(image, skin, 8, 8, 8, 8, headPivotX, headPivotY, 4.0f, 8.0f, scale, headAngle, false);
+
+        drawSkinPart(image, skin, 20, 36, 8, 12, bodyPivotX, bodyPivotY, 4.0f, 0.0f, scale, bodyAngle, true);
+        drawSkinPart(image, skin, 4, 36, 4, 12, rightLegPivotX, legPivotY, 2.0f, 0.0f, scale, rightLegAngle, true);
+        drawSkinPart(image, skin, 4, 52, 4, 12, leftLegPivotX, legPivotY, 2.0f, 0.0f, scale, leftLegAngle, true);
+        drawSkinPart(image, skin, 44, 36, 4, 12, rightArmPivotX, rightArmPivotY, 2.0f, 0.0f, scale, rightArmAngle, true);
+        drawSkinPart(image, skin, 52, 52, 4, 12, leftArmPivotX, leftArmPivotY, 2.0f, 0.0f, scale, leftArmAngle, true);
+        drawSkinPart(image, skin, 40, 8, 8, 8, headPivotX, headPivotY, 4.0f, 8.0f, scale, headAngle, true);
 
         return image;
     }
@@ -198,36 +301,63 @@ public final class DomainDisplaySkinAtlasManager {
             int sourceY,
             int width,
             int height,
-            int destinationX,
-            int destinationY,
+            float destinationPivotX,
+            float destinationPivotY,
+            float pivotX,
+            float pivotY,
             int scale,
+            float angle,
             boolean overlay) {
         if (sourceX + width > skin.getWidth() || sourceY + height > skin.getHeight()) {
             return;
         }
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int color = skin.getColorArgb(sourceX + x, sourceY + y);
-                if (overlay && ((color >>> 24) & 0xFF) == 0) {
+        float scaledWidth = width * scale;
+        float scaledHeight = height * scale;
+        float pivotScaledX = pivotX * scale;
+        float pivotScaledY = pivotY * scale;
+        float sin = (float) Math.sin(angle);
+        float cos = (float) Math.cos(angle);
+
+        float[] xs = new float[] {0.0f, scaledWidth, scaledWidth, 0.0f};
+        float[] ys = new float[] {0.0f, 0.0f, scaledHeight, scaledHeight};
+        int minX = destination.getWidth();
+        int minY = destination.getHeight();
+        int maxX = 0;
+        int maxY = 0;
+        for (int i = 0; i < 4; i++) {
+            float localX = xs[i] - pivotScaledX;
+            float localY = ys[i] - pivotScaledY;
+            int cornerX = (int) Math.floor(destinationPivotX + localX * cos - localY * sin);
+            int cornerY = (int) Math.floor(destinationPivotY + localX * sin + localY * cos);
+            minX = Math.min(minX, cornerX);
+            minY = Math.min(minY, cornerY);
+            maxX = Math.max(maxX, cornerX);
+            maxY = Math.max(maxY, cornerY);
+        }
+
+        minX = Math.max(0, minX - scale);
+        minY = Math.max(0, minY - scale);
+        maxX = Math.min(destination.getWidth() - 1, maxX + scale);
+        maxY = Math.min(destination.getHeight() - 1, maxY + scale);
+
+        for (int destinationY = minY; destinationY <= maxY; destinationY++) {
+            for (int destinationX = minX; destinationX <= maxX; destinationX++) {
+                float dx = destinationX + 0.5f - destinationPivotX;
+                float dy = destinationY + 0.5f - destinationPivotY;
+                float localX = dx * cos + dy * sin + pivotScaledX;
+                float localY = -dx * sin + dy * cos + pivotScaledY;
+                if (localX < 0.0f || localY < 0.0f || localX >= scaledWidth || localY >= scaledHeight) {
                     continue;
                 }
-                fillScaledPixel(destination, destinationX + x * scale, destinationY + y * scale, scale, color);
-            }
-        }
-    }
 
-    private static void fillScaledPixel(NativeImage image, int startX, int startY, int scale, int color) {
-        for (int y = 0; y < scale; y++) {
-            int destinationY = startY + y;
-            if (destinationY < 0 || destinationY >= image.getHeight()) {
-                continue;
-            }
-            for (int x = 0; x < scale; x++) {
-                int destinationX = startX + x;
-                if (destinationX >= 0 && destinationX < image.getWidth()) {
-                    image.setColorArgb(destinationX, destinationY, color);
+                int skinX = sourceX + (int) (localX / scale);
+                int skinY = sourceY + (int) (localY / scale);
+                int color = skin.getColorArgb(skinX, skinY);
+                if (((color >>> 24) & 0xFF) == 0 || (overlay && ((color >>> 24) & 0xFF) < 8)) {
+                    continue;
                 }
+                destination.setColorArgb(destinationX, destinationY, color);
             }
         }
     }
@@ -459,15 +589,25 @@ public final class DomainDisplaySkinAtlasManager {
     private static void registerAtlas(MinecraftClient client, NativeImage image) {
         NativeImage imageForResourceId = new NativeImage(image.getWidth(), image.getHeight(), false);
         imageForResourceId.copyFrom(image);
-        registerAtlas(client, PLAYER_SAMPLER_ID, image);
-        registerAtlas(client, PLAYER_SAMPLER_RESOURCE, imageForResourceId);
+        playerSamplerTexture = registerAtlas(client, PLAYER_SAMPLER_ID, image, playerSamplerTexture);
+        playerSamplerResourceTexture = registerAtlas(client, PLAYER_SAMPLER_RESOURCE, imageForResourceId, playerSamplerResourceTexture);
     }
 
-    private static void registerAtlas(MinecraftClient client, Identifier id, NativeImage image) {
-        NativeImageBackedTexture texture = new NativeImageBackedTexture(() -> id.toString(), image);
-        client.getTextureManager().destroyTexture(id);
-        client.getTextureManager().registerTexture(id, texture);
+    private static NativeImageBackedTexture registerAtlas(
+            MinecraftClient client,
+            Identifier id,
+            NativeImage image,
+            NativeImageBackedTexture existingTexture) {
+        NativeImageBackedTexture texture = existingTexture;
+        if (texture == null) {
+            texture = new NativeImageBackedTexture(() -> id.toString(), image);
+            client.getTextureManager().destroyTexture(id);
+            client.getTextureManager().registerTexture(id, texture);
+        } else {
+            texture.setImage(image);
+        }
         texture.upload();
+        return texture;
     }
 
     private static Path fetchedSkinPath(MinecraftClient client) {
