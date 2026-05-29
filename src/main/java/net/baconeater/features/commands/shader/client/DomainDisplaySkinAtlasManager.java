@@ -43,7 +43,7 @@ public final class DomainDisplaySkinAtlasManager {
     private static final ConcurrentMap<String, CompletableFuture<PreparedAtlas>> IN_FLIGHT = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Identifier, Long> INVALIDATED_POST_EFFECT_GENERATIONS = new ConcurrentHashMap<>();
     private static final String ATLAS_VERSION = "runtime_skin_v1";
-    private static final int RUNTIME_TEXTURE_SIZE = 256;
+    private static final int RUNTIME_TEXTURE_SIZE = 512;
     private static String registeredAtlasKey;
     private static long registeredAtlasGeneration;
     private static long nextPreloadAttemptNanos;

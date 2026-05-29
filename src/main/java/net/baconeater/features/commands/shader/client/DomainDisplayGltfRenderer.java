@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 final class DomainDisplayGltfRenderer {
+    private static final String TARGET_ANIMATION_NAME = "sukuna";
     private final List<Node> nodes;
     private final List<Mesh> meshes;
     private final List<Channel> channels;
@@ -46,7 +47,7 @@ final class DomainDisplayGltfRenderer {
 
         List<Mesh> meshes = readMeshes(root.getAsJsonArray("meshes"), accessors, bufferViews, buffer);
         List<Node> nodes = readNodes(root.getAsJsonArray("nodes"));
-        List<Channel> channels = readAnimations(root.getAsJsonArray("animations"), accessors, bufferViews, buffer);
+        List<Channel> channels = readAnimation(root.getAsJsonArray("animations"), accessors, bufferViews, buffer, TARGET_ANIMATION_NAME);
         int[] roots = readSceneRoots(root);
         int cameraNode = findCameraNode(nodes);
         return new DomainDisplayGltfRenderer(nodes, meshes, channels, roots, cameraNode);
@@ -324,24 +325,43 @@ final class DomainDisplayGltfRenderer {
         return nodes;
     }
 
-    private static List<Channel> readAnimations(JsonArray animationArray, JsonArray accessors, JsonArray bufferViews, ByteBuffer buffer) {
+    private static List<Channel> readAnimation(
+            JsonArray animationArray,
+            JsonArray accessors,
+            JsonArray bufferViews,
+            ByteBuffer buffer,
+            String targetAnimationName) {
         List<Channel> channels = new ArrayList<>();
         if (animationArray == null) {
             return channels;
         }
+
+        JsonObject selectedAnimation = null;
         for (JsonElement animationElement : animationArray) {
             JsonObject animation = animationElement.getAsJsonObject();
-            JsonArray samplers = animation.getAsJsonArray("samplers");
-            JsonArray channelArray = animation.getAsJsonArray("channels");
-            for (JsonElement channelElement : channelArray) {
-                JsonObject channel = channelElement.getAsJsonObject();
-                JsonObject target = channel.getAsJsonObject("target");
-                int samplerIndex = channel.get("sampler").getAsInt();
-                JsonObject sampler = samplers.get(samplerIndex).getAsJsonObject();
-                float[] times = readFloatAccessor(sampler.get("input").getAsInt(), accessors, bufferViews, buffer);
-                float[] values = readFloatAccessor(sampler.get("output").getAsInt(), accessors, bufferViews, buffer);
-                channels.add(new Channel(target.get("node").getAsInt(), target.get("path").getAsString(), times, values));
+            String name = animation.has("name") ? animation.get("name").getAsString() : "";
+            if (targetAnimationName.equals(name)) {
+                selectedAnimation = animation;
+                break;
             }
+        }
+        if (selectedAnimation == null && !animationArray.isEmpty()) {
+            selectedAnimation = animationArray.get(0).getAsJsonObject();
+        }
+        if (selectedAnimation == null) {
+            return channels;
+        }
+
+        JsonArray samplers = selectedAnimation.getAsJsonArray("samplers");
+        JsonArray channelArray = selectedAnimation.getAsJsonArray("channels");
+        for (JsonElement channelElement : channelArray) {
+            JsonObject channel = channelElement.getAsJsonObject();
+            JsonObject target = channel.getAsJsonObject("target");
+            int samplerIndex = channel.get("sampler").getAsInt();
+            JsonObject sampler = samplers.get(samplerIndex).getAsJsonObject();
+            float[] times = readFloatAccessor(sampler.get("input").getAsInt(), accessors, bufferViews, buffer);
+            float[] values = readFloatAccessor(sampler.get("output").getAsInt(), accessors, bufferViews, buffer);
+            channels.add(new Channel(target.get("node").getAsInt(), target.get("path").getAsString(), times, values));
         }
         return channels;
     }
