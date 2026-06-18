@@ -1,13 +1,13 @@
 package net.baconeater.mixin;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityPose;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.advancement.criterion.Criteria;
 import org.spongepowered.asm.mixin.Mixin;
@@ -85,12 +85,12 @@ public abstract class EntityPassengerMixin {
         entityPassengerMixin$setVehicle(self, vehicle);
         ((EntityInvoker) vehicle).servermods$addPassenger(self);
         vehicle.updatePassengerPosition(self);
-        ((ServerWorld) self.getEntityWorld()).getChunkManager().sendToNearbyPlayers(vehicle, new EntityPassengersSetS2CPacket(vehicle));
+        ((ServerLevel) self.getEntityWorld()).getChunkManager().sendToNearbyPlayers(vehicle, new EntityPassengersSetS2CPacket(vehicle));
         if (emitEvent) {
             this.getEntityWorld().emitGameEvent(self, GameEvent.ENTITY_MOUNT, vehicle.getEntityPos());
             vehicle.streamSelfAndPassengers()
-                    .filter(passenger -> passenger instanceof ServerPlayerEntity)
-                    .forEach(passenger -> Criteria.STARTED_RIDING.trigger((ServerPlayerEntity) passenger));
+                    .filter(passenger -> passenger instanceof ServerPlayer)
+                    .forEach(passenger -> Criteria.STARTED_RIDING.trigger((ServerPlayer) passenger));
         }
 
         cir.setReturnValue(true);

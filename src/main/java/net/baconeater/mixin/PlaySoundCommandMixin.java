@@ -4,12 +4,12 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.baconeater.features.commands.playsound.network.PlaySoundOffsetPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.command.PlaySoundCommand;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,7 +25,7 @@ public class PlaySoundCommandMixin {
     @Inject(method = "execute", at = @At("HEAD"), cancellable = true)
     private static void server_mods$executeOffsetSound(
             ServerCommandSource source,
-            Collection<ServerPlayerEntity> targets,
+            Collection<ServerPlayer> targets,
             Identifier sound,
             SoundCategory category,
             Vec3d pos,
@@ -47,7 +47,7 @@ public class PlaySoundCommandMixin {
                 Math.round(seconds)
         );
 
-        for (ServerPlayerEntity target : targets) {
+        for (ServerPlayer target : targets) {
             if (!ServerPlayNetworking.canSend(target, PlaySoundOffsetPayload.ID)) {
                 throw CANNOT_SEND_EXCEPTION.create(target.getName().getString());
             }
@@ -55,10 +55,10 @@ public class PlaySoundCommandMixin {
         }
 
         if (targets.size() == 1) {
-            ServerPlayerEntity target = targets.iterator().next();
-            source.sendFeedback(() -> Text.translatable("commands.playsound.success.single", Text.literal(sound.toString()), target.getDisplayName()), true);
+            ServerPlayer target = targets.iterator().next();
+            source.sendSuccess(() -> Text.translatable("commands.playsound.success.single", Text.literal(sound.toString()), target.getDisplayName()), true);
         } else {
-            source.sendFeedback(() -> Text.translatable("commands.playsound.success.multiple", Text.literal(sound.toString()), targets.size()), true);
+            source.sendSuccess(() -> Text.translatable("commands.playsound.success.multiple", Text.literal(sound.toString()), targets.size()), true);
         }
 
         cir.setReturnValue(targets.size());

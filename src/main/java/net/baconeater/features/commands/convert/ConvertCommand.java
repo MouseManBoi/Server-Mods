@@ -2,47 +2,48 @@ package net.baconeater.features.commands.convert;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.RegistryKeyArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceKeyArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.network.chat.Component;
 
 import java.util.Collection;
 
 public final class ConvertCommand {
     private static final DynamicCommandExceptionType INVALID_DAMAGE_TYPE_EXCEPTION = new DynamicCommandExceptionType(
-            id -> Text.literal("Unknown damage type: " + id));
+            id -> Component.literal("Unknown damage type: " + id));
 
     private ConvertCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("convert")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.argument("damageType", RegistryKeyArgumentType.registryKey(RegistryKeys.DAMAGE_TYPE))
-                        .then(CommandManager.argument("targets", EntityArgumentType.entities())
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("convert")
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                .then(Commands.argument("DamageType", ResourceKeyArgument.key(Registries.DAMAGE_TYPE))
+                        .then(Commands.argument("targets", EntityArgument.entities())
                                 .executes(context -> convertDamageType(
-                                        RegistryKeyArgumentType.getKey(
+                                        ResourceKeyArgument.getRegistryKey(
                                                 context,
-                                                "damageType",
-                                                RegistryKeys.DAMAGE_TYPE,
+                                                "DamageType",
+                                                Registries.DAMAGE_TYPE,
                                                 INVALID_DAMAGE_TYPE_EXCEPTION),
-                                        EntityArgumentType.getEntities(context, "targets"),
+                                        EntityArgument.getEntities(context, "targets"),
                                         context.getSource())))));
     }
 
     private static int convertDamageType(
-            RegistryKey<DamageType> damageType,
+            ResourceKey<DamageType> damageType,
             Collection<? extends Entity> targets,
-            ServerCommandSource source) {
+            CommandSourceStack source) {
         targets.forEach(target -> ConvertState.setDamageType(target, damageType));
-        source.sendFeedback(
-                () -> Text.literal("Converted outgoing damage to " + damageType.getValue()
+        source.sendSuccess(
+                () -> Component.literal("Converted outgoing damage to " + damageType.identifier()
                         + " for " + targets.size() + " entit" + (targets.size() == 1 ? "y" : "ies") + "."),
                 true);
         return targets.size();

@@ -7,7 +7,7 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.PostEffectPass;
 import net.minecraft.client.render.FrameGraphBuilder;
 import net.minecraft.client.util.Handle;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

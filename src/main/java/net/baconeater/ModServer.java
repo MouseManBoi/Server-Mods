@@ -27,9 +27,9 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public class ModServer implements ModInitializer {
 	@Override
@@ -37,22 +37,22 @@ public class ModServer implements ModInitializer {
 
 		// === Networking ===
 		// C2S: keybind actions from client
-		PayloadTypeRegistry.playC2S().register(KeybindC2S.ID, KeybindC2S.CODEC);
-		PayloadTypeRegistry.playS2C().register(PlaySoundOffsetPayload.ID, PlaySoundOffsetPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(KeybindC2S.TYPE, KeybindC2S.CODEC);
+		PayloadTypeRegistry.playS2C().register(PlaySoundOffsetPayload.TYPE, PlaySoundOffsetPayload.CODEC);
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.ID, PerspectiveRequestPayload.CODEC);
-			PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.ID, ToggleShaderPayload.CODEC);
-			PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.ID, VisibilityTogglePayload.CODEC);
-			PayloadTypeRegistry.playS2C().register(ToastPayload.ID, ToastPayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(PerspectiveRequestPayload.TYPE, PerspectiveRequestPayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(ToggleShaderPayload.TYPE, ToggleShaderPayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(VisibilityTogglePayload.TYPE, VisibilityTogglePayload.CODEC);
+			PayloadTypeRegistry.playS2C().register(ToastPayload.TYPE, ToastPayload.CODEC);
 		}
-		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.ID, (payload, ctx) -> {
+		ServerPlayNetworking.registerGlobalReceiver(KeybindC2S.TYPE, (payload, ctx) -> {
 			MinecraftServer server = ctx.server();
-			ServerPlayerEntity player = ctx.player();
+			ServerPlayer player = ctx.player();
 			server.execute(() -> KeybindScoreHandler.handle(server.getScoreboard(), player, payload.action()));
 		});
 		ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) ->
-				!isAttackDisabled(source.getAttacker())
-						&& !isAttackDisabled(source.getSource())
+				!isAttackDisabled(source.getEntity())
+						&& !isAttackDisabled(source.getDirectEntity())
 						&& ConvertState.applyConvertedDamage(entity, source, amount));
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ShaderCommand.register(dispatcher);

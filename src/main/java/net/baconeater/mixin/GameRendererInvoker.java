@@ -1,7 +1,7 @@
 package net.baconeater.mixin;
 
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 

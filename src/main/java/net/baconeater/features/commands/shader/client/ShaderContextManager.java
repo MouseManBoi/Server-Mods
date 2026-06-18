@@ -1,7 +1,7 @@
 package net.baconeater.features.commands.shader.client;
 
 import net.baconeater.features.commands.shader.ShaderState;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,21 +1,24 @@
 package net.baconeater.features.keybinds.payload;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 /** action: 0=toggle(R), 1=move1(Z), 2=move2(X), 3=move3(C), 4=move4(V) */
-public record KeybindC2S(int action) implements CustomPayload {
-    public static final Id<KeybindC2S> ID =
-            new Id<>(Identifier.of("keybinds", "ability_key"));
+public record KeybindC2S(int action) implements CustomPacketPayload {
+    public static final Type<KeybindC2S> TYPE =
+            new Type<>(Identifier.fromNamespaceAndPath("keybinds", "ability_key"));
 
     // Encoder is (value, buf); decoder is (buf) -> value
-    public static final PacketCodec<RegistryByteBuf, KeybindC2S> CODEC =
-            PacketCodec.of(
-                    (KeybindC2S payload, RegistryByteBuf buf) -> buf.writeVarInt(payload.action()),
-                    (RegistryByteBuf buf) -> new KeybindC2S(buf.readVarInt())
+    public static final StreamCodec<RegistryFriendlyByteBuf, KeybindC2S> CODEC =
+            StreamCodec.of(
+                    (RegistryFriendlyByteBuf buf, KeybindC2S payload) -> buf.writeVarInt(payload.action()),
+                    (RegistryFriendlyByteBuf buf) -> new KeybindC2S(buf.readVarInt())
             );
 
-    @Override public Id<? extends CustomPayload> getId() { return ID; }
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 }

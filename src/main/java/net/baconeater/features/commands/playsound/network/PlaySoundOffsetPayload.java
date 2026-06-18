@@ -1,29 +1,29 @@
 package net.baconeater.features.commands.playsound.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 public record PlaySoundOffsetPayload(
         Identifier soundId,
-        SoundCategory category,
-        Vec3d pos,
+        SoundSource category,
+        Vec3 pos,
         float volume,
         float pitch,
         long seed,
-        int seconds) implements CustomPayload {
-    public static final CustomPayload.Id<PlaySoundOffsetPayload> ID =
-            new CustomPayload.Id<>(Identifier.of("server", "playsound_offset"));
+        int seconds) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PlaySoundOffsetPayload> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("server", "playsound_offset"));
 
-    public static final PacketCodec<RegistryByteBuf, PlaySoundOffsetPayload> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, PlaySoundOffsetPayload> CODEC = new StreamCodec<>() {
         @Override
-        public PlaySoundOffsetPayload decode(RegistryByteBuf buf) {
+        public PlaySoundOffsetPayload decode(RegistryFriendlyByteBuf buf) {
             Identifier soundId = buf.readIdentifier();
-            SoundCategory category = buf.readEnumConstant(SoundCategory.class);
-            Vec3d pos = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            SoundSource category = buf.readEnum(SoundSource.class);
+            Vec3 pos = new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
             float volume = buf.readFloat();
             float pitch = buf.readFloat();
             long seed = buf.readLong();
@@ -32,9 +32,9 @@ public record PlaySoundOffsetPayload(
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, PlaySoundOffsetPayload value) {
+        public void encode(RegistryFriendlyByteBuf buf, PlaySoundOffsetPayload value) {
             buf.writeIdentifier(value.soundId());
-            buf.writeEnumConstant(value.category());
+            buf.writeEnum(value.category());
             buf.writeDouble(value.pos().x);
             buf.writeDouble(value.pos().y);
             buf.writeDouble(value.pos().z);
@@ -46,7 +46,7 @@ public record PlaySoundOffsetPayload(
     };
 
     @Override
-    public Id<PlaySoundOffsetPayload> getId() {
-        return ID;
+    public Type<PlaySoundOffsetPayload> type() {
+        return TYPE;
     }
 }

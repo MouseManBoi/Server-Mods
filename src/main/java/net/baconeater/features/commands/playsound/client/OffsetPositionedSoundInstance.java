@@ -1,21 +1,21 @@
 package net.baconeater.features.commands.playsound.client;
 
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
 
-public class OffsetPositionedSoundInstance extends PositionedSoundInstance implements SoundTimeOffset {
+public class OffsetPositionedSoundInstance extends SimpleSoundInstance implements SoundTimeOffset {
     private final float offsetSeconds;
 
     public OffsetPositionedSoundInstance(
             Identifier id,
-            SoundCategory category,
+            SoundSource category,
             float volume,
             float pitch,
-            Random random,
-            SoundInstance.AttenuationType attenuationType,
+            RandomSource random,
+            SoundInstance.Attenuation attenuationType,
             double x,
             double y,
             double z,

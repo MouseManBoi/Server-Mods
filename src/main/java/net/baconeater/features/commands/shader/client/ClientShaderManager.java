@@ -1,12 +1,13 @@
 package net.baconeater.features.commands.shader.client;
 
 import net.baconeater.features.commands.shader.ShaderState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.PostEffectProcessor;
-import net.minecraft.client.render.DefaultFramebufferSet;
-import net.minecraft.client.util.Pool;
-import net.minecraft.resource.ResourceFinder;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.PostChain;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 public final class ClientShaderManager {
-    private static final ResourceFinder POST_EFFECT_FINDER = ResourceFinder.json("post_effect");
-    private static final Identifier CREEPER_CHAIN_NEW = Identifier.of("minecraft", "creeper");
-    private static final Identifier CREEPER_CHAIN_OLD = Identifier.of("minecraft", "shaders/post/creeper.json");
+    private static final FileToIdConverter POST_EFFECT_FINDER = FileToIdConverter.json("post_effect");
+    private static final Identifier CREEPER_CHAIN_NEW = Identifier.fromNamespaceAndPath("minecraft", "creeper");
+    private static final Identifier CREEPER_CHAIN_OLD = Identifier.fromNamespaceAndPath("minecraft", "shaders/post/creeper.json");
     private static final Map<Identifier, ActiveShader> ACTIVE_SHADERS = new LinkedHashMap<>();
 
     private ClientShaderManager() {
@@ -27,7 +28,7 @@ public final class ClientShaderManager {
     }
 
     public static synchronized boolean enableShader(
-            MinecraftClient client,
+            Minecraft client,
             Identifier shaderId,
             ShaderState state,
             boolean renderOnTop) {
@@ -77,7 +78,10 @@ public final class ClientShaderManager {
         }
     }
 
-    public static void renderActiveShaders(MinecraftClient client, Pool pool) {
+    public static void renderActiveShaders(
+            Minecraft client,
+            RenderTarget mainRenderTarget,
+            GraphicsResourceAllocator graphicsResourceAllocator) {
         List<ActiveShader> shaders;
         synchronized (ClientShaderManager.class) {
             shaders = new ArrayList<>(ACTIVE_SHADERS.values());
@@ -88,14 +92,14 @@ public final class ClientShaderManager {
         List<Identifier> failedShaders = new ArrayList<>();
         for (ActiveShader activeShader : shaders) {
             try {
-                PostEffectProcessor postEffectProcessor = client.getShaderLoader()
-                        .loadPostEffect(activeShader.renderId(), DefaultFramebufferSet.MAIN_ONLY);
-                if (postEffectProcessor == null) {
+                PostChain postChain = client.getShaderManager()
+                        .getPostChain(activeShader.renderId(), LevelTargetBundle.MAIN_TARGETS);
+                if (postChain == null) {
                     failedShaders.add(activeShader.shaderId());
                     continue;
                 }
 
-                postEffectProcessor.render(client.getFramebuffer(), pool);
+                postChain.process(mainRenderTarget, graphicsResourceAllocator);
             } catch (Throwable ignored) {
                 failedShaders.add(activeShader.shaderId());
             }
@@ -120,7 +124,7 @@ public final class ClientShaderManager {
         ACTIVE_SHADERS.putAll(reorderedShaders);
     }
 
-    private static Identifier getRenderableShaderId(MinecraftClient client, Identifier shaderId) {
+    private static Identifier getRenderableShaderId(Minecraft client, Identifier shaderId) {
         if (client == null || client.getResourceManager() == null || shaderId == null) {
             return null;
         }
@@ -134,16 +138,16 @@ public final class ClientShaderManager {
         return null;
     }
 
-    private static boolean hasShaderResource(MinecraftClient client, Identifier shaderId) {
+    private static boolean hasShaderResource(Minecraft client, Identifier shaderId) {
         try {
-            return client.getResourceManager().getResource(POST_EFFECT_FINDER.toResourcePath(shaderId)).isPresent()
+            return client.getResourceManager().getResource(POST_EFFECT_FINDER.idToFile(shaderId)).isPresent()
                     || hasRawResource(client, shaderId);
         } catch (Throwable ignored) {
             return false;
         }
     }
 
-    private static boolean hasRawResource(MinecraftClient client, Identifier resourceId) {
+    private static boolean hasRawResource(Minecraft client, Identifier resourceId) {
         try {
             return client.getResourceManager().getResource(resourceId).isPresent();
         } catch (Throwable ignored) {

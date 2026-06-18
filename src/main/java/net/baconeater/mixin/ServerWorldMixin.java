@@ -1,15 +1,15 @@
 package net.baconeater.mixin;
 
 import net.baconeater.features.commands.attack.AttackState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerWorld.class)
+@Mixin(ServerLevel.class)
 public abstract class ServerWorldMixin {
     @Inject(method = "sendEntityStatus", at = @At("HEAD"), cancellable = true)
     private void server$skipDisabledHurtTint(Entity entity, byte status, CallbackInfo ci) {

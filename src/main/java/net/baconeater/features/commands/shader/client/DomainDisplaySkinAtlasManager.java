@@ -1,10 +1,10 @@
 package net.baconeater.features.commands.shader.client;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +20,11 @@ import java.util.concurrent.TimeUnit;
 
 public final class DomainDisplaySkinAtlasManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("DomainDisplaySkinAtlas");
-    private static final Identifier DOMAIN_DISPLAY = Identifier.of("minecraft", "domain_display");
-    private static final Identifier DOMAIN_POPUP = Identifier.of("minecraft", "domain_popup");
-    private static final Identifier PLAYER_SAMPLER_ID = Identifier.of("minecraft", "domain_popup/domain_popup_player");
-    private static final Identifier PLAYER_SAMPLER_RESOURCE = Identifier.of("minecraft", "textures/effect/domain_popup/domain_popup_player.png");
-    private static final Identifier MODEL_RESOURCE = Identifier.of("minecraft", "models/effect/domain_popup_model.gltf");
+    private static final Identifier DOMAIN_DISPLAY = Identifier.fromNamespaceAndPath("minecraft", "domain_display");
+    private static final Identifier DOMAIN_POPUP = Identifier.fromNamespaceAndPath("minecraft", "domain_popup");
+    private static final Identifier PLAYER_SAMPLER_ID = Identifier.fromNamespaceAndPath("minecraft", "domain_popup/domain_popup_player");
+    private static final Identifier PLAYER_SAMPLER_RESOURCE = Identifier.fromNamespaceAndPath("minecraft", "textures/effect/domain_popup/domain_popup_player.png");
+    private static final Identifier MODEL_RESOURCE = Identifier.fromNamespaceAndPath("minecraft", "models/effect/domain_popup_model.gltf");
     private static final String DOMAIN_SHADER_DIR_NAME = "domain_shader";
     private static final String FETCHED_SKIN_FILE_NAME = "fetched_skin.png";
     private static final String FALLBACK_SKIN_FILE_NAME = "fallback_skin.png";
@@ -41,15 +41,15 @@ public final class DomainDisplaySkinAtlasManager {
     private static String runtimeSkinKey;
     private static long animationStartNanos;
     private static int lastAnimationFrame = -1;
-    private static NativeImageBackedTexture playerSamplerTexture;
-    private static NativeImageBackedTexture playerSamplerResourceTexture;
+    private static DynamicTexture playerSamplerTexture;
+    private static DynamicTexture playerSamplerResourceTexture;
     private static DomainDisplayGltfRenderer gltfRenderer;
     private static long gltfRendererModifiedMillis = -1;
 
     private DomainDisplaySkinAtlasManager() {
     }
 
-    public static void preloadCurrentPlayer(MinecraftClient client) {
+    public static void preloadCurrentPlayer(Minecraft client) {
         if (client == null || System.nanoTime() < nextPreloadAttemptNanos) {
             return;
         }
@@ -70,7 +70,7 @@ public final class DomainDisplaySkinAtlasManager {
     }
 
     public static void prepareThenRun(
-            MinecraftClient client,
+            Minecraft client,
             Identifier shaderId,
             Runnable action) {
         if (client == null || action == null) {
@@ -109,7 +109,7 @@ public final class DomainDisplaySkinAtlasManager {
     }
 
 
-    public static void renderRuntimeAnimation(MinecraftClient client) {
+    public static void renderRuntimeAnimation(Minecraft client) {
         if (client == null || runtimeSkinImage == null || runtimeSkinKey == null) {
             return;
         }
@@ -174,7 +174,7 @@ public final class DomainDisplaySkinAtlasManager {
         return path.contains("domain_display") || path.contains("domain_popup");
     }
 
-    private static void registerRuntimeSkinTexture(MinecraftClient client, String skinKey, Path skinPath) throws IOException {
+    private static void registerRuntimeSkinTexture(Minecraft client, String skinKey, Path skinPath) throws IOException {
         try (InputStream stream = Files.newInputStream(skinPath)) {
             NativeImage skin = NativeImage.read(stream);
             NativeImage renderSkin = copyRenderableSkin(skin);
@@ -234,7 +234,7 @@ public final class DomainDisplaySkinAtlasManager {
         for (int yy = y; yy < y + height && yy < skin.getHeight(); yy++) {
             for (int xx = x; xx < x + width && xx < skin.getWidth(); xx++) {
                 total++;
-                int alpha = (skin.getColorArgb(xx, yy) >>> 24) & 0xFF;
+                int alpha = (skin.getPixel(xx, yy) >>> 24) & 0xFF;
                 if (alpha < 8) {
                     transparent++;
                 }
@@ -267,7 +267,7 @@ public final class DomainDisplaySkinAtlasManager {
             int height) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                destination.setColorArgb(destinationX + x, destinationY + y, source.getColorArgb(sourceX + x, sourceY + y));
+                destination.setPixel(destinationX + x, destinationY + y, source.getPixel(sourceX + x, sourceY + y));
             }
         }
     }
@@ -287,12 +287,12 @@ public final class DomainDisplaySkinAtlasManager {
             int sy = sourceY + Math.min(sourceHeight - 1, y * sourceHeight / destinationHeight);
             for (int x = 0; x < destinationWidth; x++) {
                 int sx = sourceX + Math.min(sourceWidth - 1, x * sourceWidth / destinationWidth);
-                destination.setColorArgb(destinationX + x, destinationY + y, source.getColorArgb(sx, sy));
+                destination.setPixel(destinationX + x, destinationY + y, source.getPixel(sx, sy));
             }
         }
     }
 
-    private static NativeImage renderRuntimePlayerTexture(MinecraftClient client, NativeImage skin, float time) {
+    private static NativeImage renderRuntimePlayerTexture(Minecraft client, NativeImage skin, float time) {
         DomainDisplayGltfRenderer renderer = getGltfRenderer(client);
         if (renderer != null) {
             return renderer.render(skin, RUNTIME_TEXTURE_SIZE, time);
@@ -300,7 +300,7 @@ public final class DomainDisplaySkinAtlasManager {
         return renderFrontFacingPlayer(skin, time);
     }
 
-    private static DomainDisplayGltfRenderer getGltfRenderer(MinecraftClient client) {
+    private static DomainDisplayGltfRenderer getGltfRenderer(Minecraft client) {
         try {
             Path model = modelPath(client);
             if (!Files.isRegularFile(model)) {
@@ -372,7 +372,7 @@ public final class DomainDisplaySkinAtlasManager {
     private static void clear(NativeImage image) {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                image.setColorArgb(x, y, 0);
+                image.setPixel(x, y, 0);
             }
         }
     }
@@ -436,16 +436,16 @@ public final class DomainDisplaySkinAtlasManager {
 
                 int skinX = sourceX + (int) (localX / scale);
                 int skinY = sourceY + (int) (localY / scale);
-                int color = skin.getColorArgb(skinX, skinY);
+                int color = skin.getPixel(skinX, skinY);
                 if (((color >>> 24) & 0xFF) == 0 || (overlay && ((color >>> 24) & 0xFF) < 8)) {
                     continue;
                 }
-                destination.setColorArgb(destinationX, destinationY, color);
+                destination.setPixel(destinationX, destinationY, color);
             }
         }
     }
 
-    private static Path activeSkinSource(MinecraftClient client) throws IOException {
+    private static Path activeSkinSource(Minecraft client) throws IOException {
         Path source = currentPlayerSkinPath(client);
         if (copyCurrentPlayerSkin(client, source)) {
             return source;
@@ -464,26 +464,26 @@ public final class DomainDisplaySkinAtlasManager {
         return source;
     }
 
-    private static boolean copyCurrentPlayerSkin(MinecraftClient client, Path destination) {
+    private static boolean copyCurrentPlayerSkin(Minecraft client, Path destination) {
         if (client == null || client.player == null) {
             return false;
         }
 
         try {
-            if (client.getNetworkHandler() == null) {
+            if (client.getConnection() == null) {
                 return false;
             }
-            var entry = client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
+            var entry = client.getConnection().getPlayerInfo(client.player.getUUID());
             if (entry == null) {
                 return false;
             }
-            Identifier skinTexture = entry.getSkinTextures().body().texturePath();
+            Identifier skinTexture = entry.getSkin().body().texturePath();
             Files.createDirectories(destination.getParent());
 
             try (InputStream stream = client.getResourceManager()
                     .getResource(skinTexture)
                     .orElseThrow()
-                    .getInputStream()) {
+                    .open()) {
                 NativeImage skin = NativeImage.read(stream);
                 try {
                     writeIfChanged(destination, skin);
@@ -493,10 +493,10 @@ public final class DomainDisplaySkinAtlasManager {
                 }
             } catch (Throwable ignored) {
                 AbstractTexture texture = client.getTextureManager().getTexture(skinTexture);
-                if (texture instanceof NativeImageBackedTexture backedTexture && backedTexture.getImage() != null) {
-                    NativeImage copy = new NativeImage(backedTexture.getImage().getWidth(), backedTexture.getImage().getHeight(), false);
+                if (texture instanceof DynamicTexture backedTexture && backedTexture.getPixels() != null) {
+                    NativeImage copy = new NativeImage(backedTexture.getPixels().getWidth(), backedTexture.getPixels().getHeight(), false);
                     try {
-                        copy.copyFrom(backedTexture.getImage());
+                        copy.copyFrom(backedTexture.getPixels());
                         writeIfChanged(destination, copy);
                         return true;
                     } finally {
@@ -513,7 +513,7 @@ public final class DomainDisplaySkinAtlasManager {
 
     private static void writeIfChanged(Path destination, NativeImage image) throws IOException {
         Path temporary = destination.resolveSibling(destination.getFileName() + ".tmp");
-        image.writeTo(temporary);
+        image.writeToFile(temporary);
         if (!Files.isRegularFile(destination) || !hashFile(temporary).equals(hashFile(destination))) {
             Files.move(temporary, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             return;
@@ -521,7 +521,7 @@ public final class DomainDisplaySkinAtlasManager {
         Files.deleteIfExists(temporary);
     }
 
-    private static void registerAtlas(MinecraftClient client, PreparedAtlas atlas) {
+    private static void registerAtlas(Minecraft client, PreparedAtlas atlas) {
         try {
             registerAtlas(client, atlas.image());
             registeredAtlasKey = atlas.key();
@@ -533,59 +533,59 @@ public final class DomainDisplaySkinAtlasManager {
         }
     }
 
-    private static void registerAtlas(MinecraftClient client, NativeImage image) {
+    private static void registerAtlas(Minecraft client, NativeImage image) {
         NativeImage imageForResourceId = new NativeImage(image.getWidth(), image.getHeight(), false);
         imageForResourceId.copyFrom(image);
         playerSamplerTexture = registerAtlas(client, PLAYER_SAMPLER_ID, image, playerSamplerTexture);
         playerSamplerResourceTexture = registerAtlas(client, PLAYER_SAMPLER_RESOURCE, imageForResourceId, playerSamplerResourceTexture);
     }
 
-    private static NativeImageBackedTexture registerAtlas(
-            MinecraftClient client,
+    private static DynamicTexture registerAtlas(
+            Minecraft client,
             Identifier id,
             NativeImage image,
-            NativeImageBackedTexture existingTexture) {
-        NativeImageBackedTexture texture = existingTexture;
+            DynamicTexture existingTexture) {
+        DynamicTexture texture = existingTexture;
         if (texture == null) {
-            texture = new NativeImageBackedTexture(() -> id.toString(), image);
-            client.getTextureManager().destroyTexture(id);
-            client.getTextureManager().registerTexture(id, texture);
+            texture = new DynamicTexture(() -> id.toString(), image);
+            client.getTextureManager().release(id);
+            client.getTextureManager().register(id, texture);
         } else {
-            texture.setImage(image);
+            texture.setPixels(image);
         }
         texture.upload();
         return texture;
     }
 
-    private static Path fetchedSkinPath(MinecraftClient client) {
+    private static Path fetchedSkinPath(Minecraft client) {
         return domainShaderDir(client).resolve(FETCHED_SKIN_FILE_NAME).toAbsolutePath().normalize();
     }
 
-    private static Path fallbackSkinPath(MinecraftClient client) {
+    private static Path fallbackSkinPath(Minecraft client) {
         return domainShaderDir(client).resolve(FALLBACK_SKIN_FILE_NAME).toAbsolutePath().normalize();
     }
 
-    private static Path currentPlayerSkinPath(MinecraftClient client) {
+    private static Path currentPlayerSkinPath(Minecraft client) {
         return domainShaderDir(client).resolve(CURRENT_PLAYER_SKIN_FILE_NAME).toAbsolutePath().normalize();
     }
 
-    private static Path legacyFallbackSkinPath(MinecraftClient client) {
-        return client.runDirectory.toPath().resolve(LEGACY_FALLBACK_SKIN_FILE_NAME).toAbsolutePath().normalize();
+    private static Path legacyFallbackSkinPath(Minecraft client) {
+        return client.gameDirectory.toPath().resolve(LEGACY_FALLBACK_SKIN_FILE_NAME).toAbsolutePath().normalize();
     }
 
     private static String runtimeSkinKey(Path skinPath) throws IOException {
         return hashFile(skinPath) + "_" + ATLAS_VERSION;
     }
 
-    private static Path cacheDir(MinecraftClient client) {
+    private static Path cacheDir(Minecraft client) {
         return domainShaderDir(client).resolve("generated").toAbsolutePath().normalize();
     }
 
-    private static Path domainShaderDir(MinecraftClient client) {
-        return client.runDirectory.toPath().resolve(DOMAIN_SHADER_DIR_NAME).toAbsolutePath().normalize();
+    private static Path domainShaderDir(Minecraft client) {
+        return client.gameDirectory.toPath().resolve(DOMAIN_SHADER_DIR_NAME).toAbsolutePath().normalize();
     }
 
-    private static void migrateLegacySkinFiles(MinecraftClient client) throws IOException {
+    private static void migrateLegacySkinFiles(Minecraft client) throws IOException {
         Files.createDirectories(domainShaderDir(client));
         copyIfMissing(legacyFallbackSkinPath(client), fallbackSkinPath(client));
     }
@@ -598,7 +598,7 @@ public final class DomainDisplaySkinAtlasManager {
         Files.copy(source, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private static Path modelPath(MinecraftClient client) throws IOException {
+    private static Path modelPath(Minecraft client) throws IOException {
         Path resourceModel = cachedResourceModelPath(client);
         if (copyResourceModel(client, resourceModel)) {
             return resourceModel;
@@ -607,7 +607,7 @@ public final class DomainDisplaySkinAtlasManager {
         throw new IOException("No domain popup model resource found at " + MODEL_RESOURCE);
     }
 
-    private static boolean copyResourceModel(MinecraftClient client, Path destination) {
+    private static boolean copyResourceModel(Minecraft client, Path destination) {
         if (client == null || client.getResourceManager() == null) {
             return false;
         }
@@ -615,7 +615,7 @@ public final class DomainDisplaySkinAtlasManager {
         try (InputStream stream = client.getResourceManager()
                 .getResource(MODEL_RESOURCE)
                 .orElseThrow()
-                .getInputStream()) {
+                .open()) {
             writeIfChanged(destination, stream.readAllBytes());
             return true;
         } catch (Throwable ignored) {
@@ -634,7 +634,7 @@ public final class DomainDisplaySkinAtlasManager {
         Files.deleteIfExists(temporary);
     }
 
-    private static Path cachedResourceModelPath(MinecraftClient client) {
+    private static Path cachedResourceModelPath(Minecraft client) {
         return cacheDir(client).resolve("domain_popup_model.gltf").toAbsolutePath().normalize();
     }
 

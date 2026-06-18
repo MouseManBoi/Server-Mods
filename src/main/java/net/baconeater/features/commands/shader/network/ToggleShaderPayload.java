@@ -1,33 +1,34 @@
 package net.baconeater.features.commands.shader.network;
 
 import net.baconeater.features.commands.shader.ShaderState;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 public record ToggleShaderPayload(
         Identifier shaderId,
         ShaderAction action,
         ShaderState state,
-        boolean renderOnTop) implements CustomPayload {
-    public static final CustomPayload.Id<ToggleShaderPayload> ID = new CustomPayload.Id<>(Identifier.of("creepershader", "toggle_shader"));
+        boolean renderOnTop) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ToggleShaderPayload> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("creepershader", "toggle_shader"));
 
-    public static final PacketCodec<RegistryByteBuf, ToggleShaderPayload> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ToggleShaderPayload> CODEC = new StreamCodec<>() {
         @Override
-        public ToggleShaderPayload decode(RegistryByteBuf buf) {
+        public ToggleShaderPayload decode(RegistryFriendlyByteBuf buf) {
             Identifier shader = buf.readIdentifier();
-            ShaderAction shaderAction = buf.readEnumConstant(ShaderAction.class);
-            ShaderState shaderState = buf.readEnumConstant(ShaderState.class);
+            ShaderAction shaderAction = buf.readEnum(ShaderAction.class);
+            ShaderState shaderState = buf.readEnum(ShaderState.class);
             boolean renderOnTop = buf.readBoolean();
             return new ToggleShaderPayload(shader, shaderAction, shaderState, renderOnTop);
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, ToggleShaderPayload value) {
+        public void encode(RegistryFriendlyByteBuf buf, ToggleShaderPayload value) {
             buf.writeIdentifier(value.shaderId());
-            buf.writeEnumConstant(value.action());
-            buf.writeEnumConstant(value.state());
+            buf.writeEnum(value.action());
+            buf.writeEnum(value.state());
             buf.writeBoolean(value.renderOnTop());
         }
     };
@@ -54,8 +55,8 @@ public record ToggleShaderPayload(
     }
 
     @Override
-    public Id<ToggleShaderPayload> getId() {
-        return ID;
+    public Type<ToggleShaderPayload> type() {
+        return TYPE;
     }
 
     public enum ShaderAction {

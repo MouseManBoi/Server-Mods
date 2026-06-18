@@ -3,12 +3,13 @@ package net.baconeater.features.commands.skin;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,19 +32,19 @@ public final class SkinCommand {
     private SkinCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("skin")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("fetch")
-                        .then(CommandManager.argument("targets", EntityArgumentType.entities())
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("skin")
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                .then(Commands.literal("fetch")
+                        .then(Commands.argument("targets", EntityArgument.entities())
                                 .executes(context -> fetchSkins(
-                                        EntityArgumentType.getEntities(context, "targets"),
+                                        EntityArgument.getEntities(context, "targets"),
                                         context.getSource())))));
     }
 
-    private static int fetchSkins(Collection<? extends Entity> targets, ServerCommandSource source) {
+    private static int fetchSkins(Collection<? extends Entity> targets, CommandSourceStack source) {
         Path skinPath = source.getServer()
-                .getRunDirectory()
+                .getServerDirectory()
                 .resolve(DOMAIN_SHADER_DIR_NAME)
                 .resolve(SKIN_FILE_NAME)
                 .toAbsolutePath()
@@ -52,7 +53,7 @@ public final class SkinCommand {
         int saved = 0;
         int skipped = 0;
         for (Entity target : targets) {
-            if (!(target instanceof ServerPlayerEntity player)) {
+            if (!(target instanceof ServerPlayer player)) {
                 skipped++;
                 continue;
             }
@@ -80,15 +81,15 @@ public final class SkinCommand {
                 // Leaving a stale fetched skin is worse than failing quietly, but command feedback covers the miss.
             }
         }
-        source.sendFeedback(
-                () -> Text.literal("Fetched " + finalSaved + " skin(s) to " + skinPath
+        source.sendSuccess(
+                () -> Component.literal("Fetched " + finalSaved + " skin(s) to " + skinPath
                         + (finalSkipped > 0 ? "; skipped " + finalSkipped + " target(s)" : "")
                         + (finalSaved == 0 ? "; cleared fetched skin so the shader uses fallback." : ".")),
                 true);
         return saved;
     }
 
-    private static String getSkinUrl(ServerPlayerEntity player) {
+    private static String getSkinUrl(ServerPlayer player) {
         String profileSkinUrl = player.getGameProfile()
                 .properties()
                 .get("textures")

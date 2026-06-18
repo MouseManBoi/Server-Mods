@@ -1,25 +1,25 @@
 package net.baconeater.features.commands.perspective.network;
 
 import net.baconeater.features.commands.perspective.PerspectiveState;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record PerspectiveRequestPayload(PerspectiveState state) implements CustomPayload {
-    public static final CustomPayload.Id<PerspectiveRequestPayload> ID =
-            new CustomPayload.Id<>(Identifier.of("perspective", "request"));
+public record PerspectiveRequestPayload(PerspectiveState state) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PerspectiveRequestPayload> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("perspective", "request"));
 
-    public static final PacketCodec<RegistryByteBuf, PerspectiveRequestPayload> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, PerspectiveRequestPayload> CODEC = new StreamCodec<>() {
         @Override
-        public PerspectiveRequestPayload decode(RegistryByteBuf buf) {
-            PerspectiveState state = buf.readEnumConstant(PerspectiveState.class);
+        public PerspectiveRequestPayload decode(RegistryFriendlyByteBuf buf) {
+            PerspectiveState state = buf.readEnum(PerspectiveState.class);
             return new PerspectiveRequestPayload(state);
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, PerspectiveRequestPayload value) {
-            buf.writeEnumConstant(value.state());
+        public void encode(RegistryFriendlyByteBuf buf, PerspectiveRequestPayload value) {
+            buf.writeEnum(value.state());
         }
     };
 
@@ -28,7 +28,7 @@ public record PerspectiveRequestPayload(PerspectiveState state) implements Custo
     }
 
     @Override
-    public Id<PerspectiveRequestPayload> getId() {
-        return ID;
+    public Type<PerspectiveRequestPayload> type() {
+        return TYPE;
     }
 }

@@ -1,9 +1,9 @@
 package net.baconeater.mixin;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,6 +18,6 @@ public abstract class EntityDismountMixin {
             return;
         }
 
-        ((ServerWorld) self.getEntityWorld()).getChunkManager().sendToNearbyPlayers(self, new EntityPassengersSetS2CPacket(self));
+        ((ServerLevel) self.getEntityWorld()).getChunkManager().sendToNearbyPlayers(self, new EntityPassengersSetS2CPacket(self));
     }
 }

@@ -1,27 +1,27 @@
 package net.baconeater.features.commands.visibility.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record VisibilityTogglePayload(int entityId, VisibilityAction action, boolean renderOutsideFirstPerson) implements CustomPayload {
-    public static final CustomPayload.Id<VisibilityTogglePayload> ID =
-            new CustomPayload.Id<>(Identifier.of("visibility", "toggle"));
+public record VisibilityTogglePayload(int entityId, VisibilityAction action, boolean renderOutsideFirstPerson) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<VisibilityTogglePayload> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("visibility", "toggle"));
 
-    public static final PacketCodec<RegistryByteBuf, VisibilityTogglePayload> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, VisibilityTogglePayload> CODEC = new StreamCodec<>() {
         @Override
-        public VisibilityTogglePayload decode(RegistryByteBuf buf) {
+        public VisibilityTogglePayload decode(RegistryFriendlyByteBuf buf) {
             int entityId = buf.readVarInt();
-            VisibilityAction action = buf.readEnumConstant(VisibilityAction.class);
+            VisibilityAction action = buf.readEnum(VisibilityAction.class);
             boolean renderOutsideFirstPerson = buf.readBoolean();
             return new VisibilityTogglePayload(entityId, action, renderOutsideFirstPerson);
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, VisibilityTogglePayload value) {
+        public void encode(RegistryFriendlyByteBuf buf, VisibilityTogglePayload value) {
             buf.writeVarInt(value.entityId());
-            buf.writeEnumConstant(value.action());
+            buf.writeEnum(value.action());
             buf.writeBoolean(value.renderOutsideFirstPerson());
         }
     };
@@ -35,8 +35,8 @@ public record VisibilityTogglePayload(int entityId, VisibilityAction action, boo
     }
 
     @Override
-    public Id<VisibilityTogglePayload> getId() {
-        return ID;
+    public Type<VisibilityTogglePayload> type() {
+        return TYPE;
     }
 
     public enum VisibilityAction {

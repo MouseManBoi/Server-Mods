@@ -1,7 +1,7 @@
 package net.baconeater.mixin;
 
 import net.baconeater.features.commands.visibility.client.ClientVisibilityManager;
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.entity.data.TrackedData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

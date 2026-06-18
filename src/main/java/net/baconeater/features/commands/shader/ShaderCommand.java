@@ -12,16 +12,17 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.IdentifierArgumentType;
-import net.minecraft.resource.ResourceFinder;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,20 +37,20 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public final class ShaderCommand {
-    private static final ResourceFinder POST_EFFECT_FINDER = ResourceFinder.json("post_effect");
-    private static final ResourceFinder LEGACY_POST_EFFECT_FINDER = ResourceFinder.json("shaders/post");
+    private static final FileToIdConverter POST_EFFECT_FINDER = FileToIdConverter.json("post_effect");
+    private static final FileToIdConverter LEGACY_POST_EFFECT_FINDER = FileToIdConverter.json("shaders/post");
     private static final String[] SHADER_STATES = {"in", "out"};
 
     private ShaderCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(createShaderCommand());
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> createShaderCommand() {
-        LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("shader")
-                .requires(source -> source.hasPermissionLevel(2));
+    private static LiteralArgumentBuilder<CommandSourceStack> createShaderCommand() {
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("shader")
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER));
 
         registerShaderAction(root, "toggle", ToggleShaderPayload.ShaderAction.TOGGLE);
         registerShaderAction(root, "enable", ToggleShaderPayload.ShaderAction.ENABLE);
@@ -59,56 +60,56 @@ public final class ShaderCommand {
     }
 
     private static void registerShaderAction(
-            LiteralArgumentBuilder<ServerCommandSource> root,
+            LiteralArgumentBuilder<CommandSourceStack> root,
             String name,
             ToggleShaderPayload.ShaderAction action) {
-        root.then(CommandManager.literal(name)
-                .then(CommandManager.argument("targets", EntityArgumentType.players())
-                        .then(CommandManager.argument("shader", IdentifierArgumentType.identifier())
+        root.then(Commands.literal(name)
+                .then(Commands.argument("targets", EntityArgument.players())
+                        .then(Commands.argument("shader", IdentifierArgument.id())
                                 .suggests(ShaderCommand::suggestShaders)
                                 .executes(context -> applyShaderUpdate(
-                                        EntityArgumentType.getPlayers(context, "targets"),
+                                        EntityArgument.getPlayers(context, "targets"),
                                         context.getSource(),
-                                        IdentifierArgumentType.getIdentifier(context, "shader"),
+                                        IdentifierArgument.getId(context, "shader"),
                                         action,
                                         ShaderState.NONE,
                                         false))
-                                .then(CommandManager.argument("renderOnTop", BoolArgumentType.bool())
+                                .then(Commands.argument("renderOnTop", BoolArgumentType.bool())
                                         .executes(context -> applyShaderUpdate(
-                                                EntityArgumentType.getPlayers(context, "targets"),
+                                                EntityArgument.getPlayers(context, "targets"),
                                                 context.getSource(),
-                                                IdentifierArgumentType.getIdentifier(context, "shader"),
+                                                IdentifierArgument.getId(context, "shader"),
                                                 action,
                                                 ShaderState.NONE,
                                                 BoolArgumentType.getBool(context, "renderOnTop")))
-                                        .then(CommandManager.argument("state", StringArgumentType.word())
+                                        .then(Commands.argument("state", StringArgumentType.word())
                                                 .suggests(ShaderCommand::suggestShaderStates)
                                                 .executes(context -> applyShaderUpdate(
-                                                        EntityArgumentType.getPlayers(context, "targets"),
+                                                        EntityArgument.getPlayers(context, "targets"),
                                                         context.getSource(),
-                                                        IdentifierArgumentType.getIdentifier(context, "shader"),
+                                                        IdentifierArgument.getId(context, "shader"),
                                                         action,
                                                         ShaderState.fromCommandName(StringArgumentType.getString(context, "state")),
                                                         BoolArgumentType.getBool(context, "renderOnTop"))))))));
     }
 
     private static CompletableFuture<Suggestions> suggestShaders(
-            CommandContext<ServerCommandSource> context,
+            CommandContext<CommandSourceStack> context,
             SuggestionsBuilder builder) {
         Set<String> suggestions = new LinkedHashSet<>();
         String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
 
         for (Identifier shaderId : getAvailableShaderIds(context.getSource())) {
             String fullId = shaderId.toString();
-            if (CommandSource.shouldSuggest(remaining, fullId.toLowerCase(Locale.ROOT))) {
+            if (SharedSuggestionProvider.matchesSubStr(remaining, fullId.toLowerCase(Locale.ROOT))) {
                 suggestions.add(fullId);
             }
         }
 
-        return CommandSource.suggestMatching(suggestions, builder);
+        return SharedSuggestionProvider.suggest(suggestions, builder);
     }
 
-    private static List<Identifier> getAvailableShaderIds(ServerCommandSource source) {
+    private static List<Identifier> getAvailableShaderIds(CommandSourceStack source) {
         Set<Identifier> shaderIds = new LinkedHashSet<>();
         ResourceManager resourceManager = source.getServer().getResourceManager();
         if (resourceManager != null) {
@@ -127,7 +128,7 @@ public final class ShaderCommand {
 
     private static List<Identifier> getClientShaderIds() {
         try {
-            Class<?> minecraftClientClass = Class.forName("net.minecraft.client.MinecraftClient");
+            Class<?> minecraftClientClass = Class.forName("net.minecraft.client.Minecraft");
             Object client = minecraftClientClass.getMethod("getInstance").invoke(null);
             if (client == null) {
                 return List.of();
@@ -146,13 +147,13 @@ public final class ShaderCommand {
 
     private static List<Identifier> getAvailableShaderIds(ResourceManager resourceManager) {
         Set<Identifier> shaderIds = new LinkedHashSet<>();
-        shaderIds.addAll(POST_EFFECT_FINDER.findResources(resourceManager)
+        shaderIds.addAll(POST_EFFECT_FINDER.listMatchingResources(resourceManager)
                 .keySet()
                 .stream()
-                .map(POST_EFFECT_FINDER::toResourceId)
+                .map(POST_EFFECT_FINDER::fileToId)
                 .distinct()
                 .toList());
-        shaderIds.addAll(LEGACY_POST_EFFECT_FINDER.findResources(resourceManager).keySet());
+        shaderIds.addAll(LEGACY_POST_EFFECT_FINDER.listMatchingResources(resourceManager).keySet());
         return shaderIds.stream()
                 .sorted(Comparator.comparing(Identifier::toString))
                 .toList();
@@ -214,21 +215,21 @@ public final class ShaderCommand {
             path = path.substring(0, path.length() - ".json".length());
         }
         try {
-            return Identifier.of(namespace, path);
+            return Identifier.fromNamespaceAndPath(namespace, path);
         } catch (RuntimeException ignored) {
             return null;
         }
     }
 
     private static CompletableFuture<Suggestions> suggestShaderStates(
-            CommandContext<ServerCommandSource> context,
+            CommandContext<CommandSourceStack> context,
             SuggestionsBuilder builder) {
-        return CommandSource.suggestMatching(SHADER_STATES, builder);
+        return SharedSuggestionProvider.suggest(SHADER_STATES, builder);
     }
 
     private static int applyShaderUpdate(
-            Collection<ServerPlayerEntity> players,
-            ServerCommandSource source,
+            Collection<ServerPlayer> players,
+            CommandSourceStack source,
             Identifier shader,
             ToggleShaderPayload.ShaderAction action,
             ShaderState state,
@@ -239,8 +240,8 @@ public final class ShaderCommand {
             case ENABLE -> ToggleShaderPayload.enable(shader, state, renderOnTop);
             case DISABLE -> ToggleShaderPayload.disable(shader, state, renderOnTop);
         };
-        for (ServerPlayerEntity player : players) {
-            if (ServerPlayNetworking.canSend(player, ToggleShaderPayload.ID)) {
+        for (ServerPlayer player : players) {
+            if (ServerPlayNetworking.canSend(player, ToggleShaderPayload.TYPE)) {
                 ServerPlayNetworking.send(player, payload);
                 sentCount++;
             }
@@ -254,8 +255,8 @@ public final class ShaderCommand {
         };
         int finalSentCount = sentCount;
         int finalSkippedCount = skippedCount;
-        source.sendFeedback(
-                () -> Text.literal(message
+        source.sendSuccess(
+                () -> Component.literal(message
                         + " shader "
                         + shader
                         + (state.isSpecified() ? " (" + state.commandName() + ")" : "")

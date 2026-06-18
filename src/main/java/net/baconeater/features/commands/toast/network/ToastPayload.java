@@ -1,36 +1,36 @@
 package net.baconeater.features.commands.toast.network;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.Identifier;
 
-public record ToastPayload(ItemStack icon, Text title, Text subtitle) implements CustomPayload {
-    public static final CustomPayload.Id<ToastPayload> ID =
-            new CustomPayload.Id<>(Identifier.of("server", "toast"));
+public record ToastPayload(ItemStack icon, Component title, Component subtitle) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ToastPayload> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("server", "toast"));
 
-    public static final PacketCodec<RegistryByteBuf, ToastPayload> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ToastPayload> CODEC = new StreamCodec<>() {
         @Override
-        public ToastPayload decode(RegistryByteBuf buf) {
-            ItemStack icon = ItemStack.PACKET_CODEC.decode(buf);
-            Text title = TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC.decode(buf);
-            Text subtitle = TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC.decode(buf);
+        public ToastPayload decode(RegistryFriendlyByteBuf buf) {
+            ItemStack icon = ItemStack.STREAM_CODEC.decode(buf);
+            Component title = ComponentSerialization.STREAM_CODEC.decode(buf);
+            Component subtitle = ComponentSerialization.STREAM_CODEC.decode(buf);
             return new ToastPayload(icon, title, subtitle);
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, ToastPayload value) {
-            ItemStack.PACKET_CODEC.encode(buf, value.icon());
-            TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC.encode(buf, value.title());
-            TextCodecs.UNLIMITED_REGISTRY_PACKET_CODEC.encode(buf, value.subtitle());
+        public void encode(RegistryFriendlyByteBuf buf, ToastPayload value) {
+            ItemStack.STREAM_CODEC.encode(buf, value.icon());
+            ComponentSerialization.STREAM_CODEC.encode(buf, value.title());
+            ComponentSerialization.STREAM_CODEC.encode(buf, value.subtitle());
         }
     };
 
     @Override
-    public Id<ToastPayload> getId() {
-        return ID;
+    public Type<ToastPayload> type() {
+        return TYPE;
     }
 }

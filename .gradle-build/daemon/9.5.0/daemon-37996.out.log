@@ -1,0 +1,205 @@
+2026-06-18T13:55:05.032-0400 [DEBUG] [org.gradle.launcher.daemon.bootstrap.DaemonMain] Assuming the daemon was started with following jvm opts: [-Xmx1G, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant]
+2026-06-18T13:55:05.105-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe 2.5GbE Family Controller-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.106-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.107-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe 2.5GbE Family Controller-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.107-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.108-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe 2.5GbE Family Controller-WFP 802.3 MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.108-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.108-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IP)-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.108-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.108-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IP)-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.109-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.109-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IPv6)-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.109-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.109-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IPv6)-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.109-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.110-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (Network Monitor)-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.110-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.110-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.110-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe GbE Family Controller
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Kernel Debug Network Adapter
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IP)
+2026-06-18T13:55:05.111-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.112-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IPv6)
+2026-06-18T13:55:05.112-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.112-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (Network Monitor)
+2026-06-18T13:55:05.112-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.112-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Bluetooth Device (Personal Area Network)
+2026-06-18T13:55:05.113-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.113-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe GbE Family Controller #2
+2026-06-18T13:55:05.113-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.113-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Realtek PCIe 2.5GbE Family Controller
+2026-06-18T13:55:05.114-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.114-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:3230:a196:ea3:1143%ethernet_32775
+2026-06-18T13:55:05.114-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Bluetooth Device (Personal Area Network) #2
+2026-06-18T13:55:05.114-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:59f9:5855:20fa:da13%ethernet_32776
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Bluetooth Device (Personal Area Network) #3
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (PPPOE)
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.115-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Software Loopback Interface 1
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? true
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /0:0:0:0:0:0:0:1
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /127.0.0.1
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card-Virtual WiFi Filter Driver-0000
+2026-06-18T13:55:05.116-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.117-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card-Native WiFi Filter Driver-0000
+2026-06-18T13:55:05.117-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.117-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.117-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card-WFP 802.3 MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2-Virtual WiFi Filter Driver-0000
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.118-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2-Native WiFi Filter Driver-0000
+2026-06-18T13:55:05.119-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.119-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.119-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2-WFP 802.3 MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #5-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #5-Native WiFi Filter Driver-0000
+2026-06-18T13:55:05.120-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #5-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #5-WFP 802.3 MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #6-WFP Native MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #6-Native WiFi Filter Driver-0000
+2026-06-18T13:55:05.121-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #6-QoS Packet Scheduler-0000
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #6-WFP 802.3 MAC Layer LightWeight Filter-0000
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #2
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.122-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Intel(R) Wi-Fi 6E AX210 160MHz #2
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:a4d3:6b43:f8e:a260%wireless_32771
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /192.168.26.30
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #3
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #4
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:e883:2225:8fe:28ff%wireless_32774
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /192.168.26.29
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #5
+2026-06-18T13:55:05.123-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:7ec:95bb:981a:5c47%wireless_32775
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Wi-Fi Direct Virtual Adapter #6
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:9411:e09a:4cfa:aac4%wireless_32776
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft Teredo Tunneling Adapter
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft IP-HTTPS Platform Adapter
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface Microsoft 6to4 Adapter
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.124-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (SSTP)
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (IKEv2)
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (L2TP)
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface WAN Miniport (PPTP)
+2026-06-18T13:55:05.125-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2026-06-18T13:55:05.146-0400 [INFO] [org.gradle.launcher.daemon.server.Daemon] start() called on daemon - DefaultDaemonContext[uid=6ff7fbc9-74d5-4ae3-aa9a-cb1d1bd465ec,javaHome=C:\tmp\temurin25\jdk-25.0.3+9,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods\.gradle-build\daemon,pid=37996,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx1G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+2026-06-18T13:55:05.169-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Listening on [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]].
+2026-06-18T13:55:05.173-0400 [DEBUG] [org.gradle.launcher.daemon.server.Daemon] Daemon starting at: Thu Jun 18 13:55:05 EDT 2026, with address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:05.173-0400 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Advertising the daemon address to the clients: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:05.173-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Advertised daemon context: DefaultDaemonContext[uid=6ff7fbc9-74d5-4ae3-aa9a-cb1d1bd465ec,javaHome=C:\tmp\temurin25\jdk-25.0.3+9,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods\.gradle-build\daemon,pid=37996,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx1G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+2026-06-18T13:55:05.174-0400 [DEBUG] [org.gradle.launcher.daemon.registry.PersistentDaemonRegistry] Storing daemon address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]], context: DefaultDaemonContext[uid=6ff7fbc9-74d5-4ae3-aa9a-cb1d1bd465ec,javaHome=C:\tmp\temurin25\jdk-25.0.3+9,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods\.gradle-build\daemon,pid=37996,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx1G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+2026-06-18T13:55:05.184-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2026-06-18T13:55:05.186-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2026-06-18T13:55:05.189-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2026-06-18T13:55:05.190-0400 [LIFECYCLE] [org.gradle.launcher.daemon.server.Daemon] Daemon server started.
+2026-06-18T13:55:05.190-0400 [DEBUG] [org.gradle.launcher.daemon.bootstrap.DaemonStartupCommunication] Completed writing the daemon greeting. Closing streams...
+2026-06-18T13:55:05.195-0400 [DEBUG] [org.gradle.launcher.daemon.server.Daemon] stopOnExpiration() called on daemon
+2026-06-18T13:55:05.196-0400 [DEBUG] [org.gradle.launcher.daemon.server.Daemon] awaitExpiration() called on daemon
+2026-06-18T13:55:05.196-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2026-06-18T13:55:05.204-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Accepted connection from /127.0.0.1:53048 to /127.0.0.1:53047.
+2026-06-18T13:55:05.233-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 53: received class org.gradle.launcher.daemon.protocol.Build
+2026-06-18T13:55:05.233-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultDaemonConnection] thread 53: Received non-IO message from client: Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}
+2026-06-18T13:55:05.233-0400 [INFO] [org.gradle.launcher.daemon.server.DefaultIncomingConnectionHandler] Received command: Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}.
+2026-06-18T13:55:05.234-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultIncomingConnectionHandler] Starting executing command: Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods} with connection: socket connection from /127.0.0.1:53047 to /127.0.0.1:53048.
+2026-06-18T13:55:05.234-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Command execution: started DaemonCommandExecution[command = Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}, connection = DefaultDaemonConnection: socket connection from /127.0.0.1:53047 to /127.0.0.1:53048] after 0.0011166666666666666 minutes of idle
+2026-06-18T13:55:05.234-0400 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Marking the daemon as busy, address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:05.234-0400 [DEBUG] [org.gradle.launcher.daemon.registry.PersistentDaemonRegistry] Marking busy by address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:05.235-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2026-06-18T13:55:05.235-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2026-06-18T13:55:05.236-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2026-06-18T13:55:05.236-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] resetting idle timer
+2026-06-18T13:55:05.236-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2026-06-18T13:55:05.237-0400 [INFO] [org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy] Daemon is about to start building Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}. Dispatching build started information...
+2026-06-18T13:55:05.237-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 55: dispatching org.gradle.launcher.daemon.protocol.BuildStarted@5fddcea
+2026-06-18T13:55:05.237-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment] Configuring env variables: [PATH, USERDOMAIN_ROAMINGPROFILE, PROCESSOR_LEVEL, GIT_PAGER, ALLUSERSPROFILE, GIT_CONFIG_COUNT, CODEX_SHELL, PROCESSOR_ARCHITECTURE, PSModulePath, SystemDrive, USERNAME, GIT_CONFIG_VALUE_0, ProgramFiles(x86), CODEX_INTERNAL_ORIGINATOR_OVERRIDE, CODEX_SANDBOX_NETWORK_DISABLED, PATHEXT, SHELL, DriverData, PAGER, LOG_FORMAT, ProgramData, ProgramW6432, HOMEPATH, PROCESSOR_IDENTIFIER, ProgramFiles, PUBLIC, ZSH_TMUX_AUTOSTARTED, LESS, windir, LOCALAPPDATA, USERDOMAIN, LOGONSERVER, JAVA_HOME, PROMPT, RUST_LOG, OneDrive, =C:, APPDATA, CODEX_THREAD_ID, CommonProgramFiles, Path, GIT_CONFIG_KEY_0, DISABLE_AUTO_UPDATE, OS, COMPUTERNAME, PROCESSOR_REVISION, CommonProgramW6432, ComSpec, ZSH_TMUX_AUTOSTART, CODEX_SQLITE_HOME, SystemRoot, TEMP, HOMEDRIVE, USERPROFILE, TMP, CommonProgramFiles(x86), NUMBER_OF_PROCESSORS]
+2026-06-18T13:55:05.240-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.LogToClient] About to start relaying all logs to the client via the connection.
+2026-06-18T13:55:05.240-0400 [INFO] [org.gradle.launcher.daemon.server.exec.LogToClient] The client will now receive all logging from the daemon (pid: 37996). The daemon log file: C:\Users\joshu\OneDrive\Desktop\Server-Mods\.gradle-build\daemon\9.5.0\daemon-37996.out.log
+2026-06-18T13:55:05.246-0400 [INFO] [org.gradle.launcher.daemon.server.exec.LogAndCheckHealth] Starting build in new daemon [memory: 1 GiB]
+2026-06-18T13:55:05.249-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] The daemon has started executing the build.
+2026-06-18T13:55:05.249-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] Executing build with daemon context: DefaultDaemonContext[uid=6ff7fbc9-74d5-4ae3-aa9a-cb1d1bd465ec,javaHome=C:\tmp\temurin25\jdk-25.0.3+9,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods\.gradle-build\daemon,pid=37996,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx1G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file 'C:\Users\joshu\OneDrive\Desktop\Server-Mods\build.gradle' line: 2
+
+* What went wrong:
+Plugin [id: 'net.fabricmc.fabric-loom', version: '1.17-SNAPSHOT'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- Included Builds (No included builds contain this plugin)
+- Plugin Repositories (could not resolve plugin artifact 'net.fabricmc.fabric-loom:net.fabricmc.fabric-loom.gradle.plugin:1.17-SNAPSHOT')
+  Searched in the following repositories:
+    Fabric(https://maven.fabricmc.net/)
+    MavenRepo
+    Gradle Central Plugin Repository
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 9s
+2026-06-18T13:55:13.336-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ExecuteBuild] The daemon has finished executing the build.
+2026-06-18T13:55:13.353-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2026-06-18T13:55:13.353-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Command execution: finished waiting for DaemonCommandExecution[command = Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}, connection = DefaultDaemonConnection: socket connection from /127.0.0.1:53047 to /127.0.0.1:53048]. Result org.gradle.launcher.daemon.server.DaemonStateCoordinator@32203d6d with state Busy
+2026-06-18T13:55:13.353-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] Command execution: completed DaemonCommandExecution[command = Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}, connection = DefaultDaemonConnection: socket connection from /127.0.0.1:53047 to /127.0.0.1:53048]
+2026-06-18T13:55:13.353-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] resetting idle timer
+2026-06-18T13:55:13.353-0400 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Marking the daemon as idle, address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:13.353-0400 [DEBUG] [org.gradle.launcher.daemon.registry.PersistentDaemonRegistry] Marking busy by address: [bf680843-a811-447f-b6c2-de4d5b71d3cf port:53047, addresses:[localhost/127.0.0.1]]
+2026-06-18T13:55:13.358-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+2026-06-18T13:55:13.359-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Lock acquired on daemon addresses registry.
+2026-06-18T13:55:13.360-0400 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Releasing lock on daemon addresses registry.
+2026-06-18T13:55:13.360-0400 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon is running. Sleeping until state changes.
+2026-06-18T13:55:13.360-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.ReturnResult] Daemon is dispatching the build result: Success[value=org.gradle.launcher.exec.BuildActionResult@6e38070]
+2026-06-18T13:55:13.361-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 52: dispatching Success[value=org.gradle.launcher.exec.BuildActionResult@6e38070]
+2026-06-18T13:55:13.364-0400 [DEBUG] [org.gradle.launcher.daemon.server.exec.CleanUpVirtualFileSystemAfterBuild] Cleaning virtual file system after build finished
+2026-06-18T13:55:13.364-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultIncomingConnectionHandler] Finishing executing command: Build{id=13f877e9-5ec2-40f1-94b0-495e1dacdf6c, currentDir=C:\Users\joshu\OneDrive\Desktop\Server-Mods}
+2026-06-18T13:55:13.378-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 53: received class org.gradle.launcher.daemon.protocol.CloseInput
+2026-06-18T13:55:13.378-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultDaemonConnection] thread 53: Received IO message from client: org.gradle.launcher.daemon.protocol.CloseInput@4bf8736
+2026-06-18T13:55:13.378-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 53: received class org.gradle.launcher.daemon.protocol.Finished
+2026-06-18T13:55:13.378-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultDaemonConnection] thread 53: Received non-IO message from client: org.gradle.launcher.daemon.protocol.Finished@17e3218b
+2026-06-18T13:55:13.379-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultIncomingConnectionHandler] Received finished message: org.gradle.launcher.daemon.protocol.Finished@17e3218b
+2026-06-18T13:55:13.379-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 52: stopping connection
+2026-06-18T13:55:13.379-0400 [DEBUG] [org.gradle.internal.remote.internal.inet.SocketConnection] Discarding EOFException: java.io.EOFException
+2026-06-18T13:55:13.379-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 53: received null
+2026-06-18T13:55:13.379-0400 [DEBUG] [org.gradle.launcher.daemon.server.DefaultDaemonConnection] thread 53: Received end-of-input from client.
+2026-06-18T13:55:13.380-0400 [DEBUG] [org.gradle.launcher.daemon.server.SynchronizedDispatchConnection] thread 52: stopping connection

@@ -1,6 +1,6 @@
 package net.baconeater.features.commands.playsound.client;
 
-import net.minecraft.client.sound.AudioStream;
+import net.minecraft.client.sounds.AudioStream;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;

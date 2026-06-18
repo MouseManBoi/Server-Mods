@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.texture.NativeImage;
+import com.mojang.blaze3d.platform.NativeImage;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;
@@ -235,7 +235,7 @@ final class DomainDisplayGltfRenderer {
 
                 float u;
                 float v;
-                if (triangle.perspective) {
+                if (triangle.CameraType) {
                     float perspectiveWeight = triangle.a.z * w0 + triangle.b.z * w1 + triangle.c.z * w2;
                     if (perspectiveWeight <= 0.000001f) {
                         continue;
@@ -256,7 +256,7 @@ final class DomainDisplayGltfRenderer {
                 }
 
                 depth[depthIndex] = z;
-                image.setColorArgb(x, y, color);
+                image.setPixel(x, y, color);
             }
         }
     }
@@ -264,7 +264,7 @@ final class DomainDisplayGltfRenderer {
     private static int sampleSkin(NativeImage skin, float u, float v) {
         int x = clamp((int) (u * skin.getWidth()), 0, skin.getWidth() - 1);
         int y = clamp((int) (v * skin.getHeight()), 0, skin.getHeight() - 1);
-        return skin.getColorArgb(x, y);
+        return skin.getPixel(x, y);
     }
 
     private static float edge(Vector3f a, Vector3f b, float x, float y) {
@@ -274,7 +274,7 @@ final class DomainDisplayGltfRenderer {
     private static void clear(NativeImage image) {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                image.setColorArgb(x, y, 0);
+                image.setPixel(x, y, 0);
             }
         }
     }
@@ -560,7 +560,7 @@ final class DomainDisplayGltfRenderer {
         }
     }
 
-    private record Triangle(Vector3f a, Vector3f b, Vector3f c, Vector2f uvA, Vector2f uvB, Vector2f uvC, boolean perspective) {
+    private record Triangle(Vector3f a, Vector3f b, Vector3f c, Vector2f uvA, Vector2f uvB, Vector2f uvC, boolean CameraType) {
         Triangle project(int size, float scale, float offsetX, float offsetY) {
             return new Triangle(project(a, scale, offsetX, offsetY), project(b, scale, offsetX, offsetY), project(c, scale, offsetX, offsetY), uvA, uvB, uvC, false);
         }

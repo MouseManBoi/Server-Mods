@@ -2,10 +2,10 @@ package net.baconeater.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.baconeater.features.commands.shader.client.ClientShaderManager;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.util.Pool;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
     @Shadow
     @Final
-    private MinecraftClient client;
+    private Minecraft client;
 
     @Shadow
     @Final
-    private Pool pool;
+    private GraphicsResourceAllocator GraphicsResourceAllocator;
 
     @Inject(
             method = "render",
@@ -33,6 +33,6 @@ public abstract class GameRendererMixin {
     )
     private void server$renderActiveCommandShaders(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
         RenderSystem.resetTextureMatrix();
-        ClientShaderManager.renderActiveShaders(this.client, this.pool);
+        ClientShaderManager.renderActiveShaders(this.client, this.GraphicsResourceAllocator);
     }
 }

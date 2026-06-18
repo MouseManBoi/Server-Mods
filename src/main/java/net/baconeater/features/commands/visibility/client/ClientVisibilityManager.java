@@ -1,9 +1,9 @@
 package net.baconeater.features.commands.visibility.client;
 
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.Perspective;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.CameraType;
+import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +25,8 @@ public final class ClientVisibilityManager {
         }
     }
 
-    public static void tick(MinecraftClient client) {
-        if (client.world == null || HIDDEN_ENTITY_IDS.isEmpty()) {
+    public static void tick(Minecraft client) {
+        if (client.level == null || HIDDEN_ENTITY_IDS.isEmpty()) {
             return;
         }
 
@@ -53,12 +53,12 @@ public final class ClientVisibilityManager {
     }
 
     private static void refreshEntityVisibility(int entityId) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) {
             return;
         }
 
-        Entity entity = client.world.getEntityById(entityId);
+        Entity entity = client.level.getEntity(entityId);
         if (entity == null) {
             return;
         }
@@ -91,13 +91,13 @@ public final class ClientVisibilityManager {
     }
 
     private static void showEntityIfPresent(int entityId) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) {
             PREVIOUS_INVISIBILITY.remove(entityId);
             return;
         }
 
-        Entity entity = client.world.getEntityById(entityId);
+        Entity entity = client.level.getEntity(entityId);
         if (entity != null) {
             restoreEntityVisibility(entity);
         } else {
@@ -115,16 +115,16 @@ public final class ClientVisibilityManager {
     }
 
     private static boolean isFirstPersonPerspective() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client.options == null) {
             return true;
         }
 
-        return client.options.getPerspective() == Perspective.FIRST_PERSON;
+        return client.options.getCameraType() == CameraType.FIRST_PERSON;
     }
 
     private static boolean shouldUseInvisibilityFlag(Entity entity) {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         return client.player == entity && isFirstPersonPerspective();
     }
 

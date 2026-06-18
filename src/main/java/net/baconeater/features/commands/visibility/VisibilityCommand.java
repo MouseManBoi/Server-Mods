@@ -3,12 +3,13 @@ package net.baconeater.features.commands.visibility;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.baconeater.features.commands.visibility.network.VisibilityTogglePayload;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -18,27 +19,27 @@ public final class VisibilityCommand {
     private VisibilityCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("visibility")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("disable")
-                        .then(CommandManager.argument("target", EntityArgumentType.entities())
-                                .then(CommandManager.argument("viewer", EntityArgumentType.players())
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("visibility")
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                .then(Commands.literal("disable")
+                        .then(Commands.argument("target", EntityArgument.entities())
+                                .then(Commands.argument("viewer", EntityArgument.players())
                                         .executes(context -> changeVisibility(
-                                                EntityArgumentType.getEntities(context, "target"),
-                                                EntityArgumentType.getPlayers(context, "viewer"),
+                                                EntityArgument.getEntities(context, "target"),
+                                                EntityArgument.getPlayers(context, "viewer"),
                                                 true,
                                                 false,
                                                 true,
                                                 context.getSource()))
                                         .then(perspectiveOption("ignore_perspective", true, false))
                                         .then(perspectiveOption("inline_perspective", true, true)))))
-                .then(CommandManager.literal("enable")
-                        .then(CommandManager.argument("target", EntityArgumentType.entities())
-                                .then(CommandManager.argument("viewer", EntityArgumentType.players())
+                .then(Commands.literal("enable")
+                        .then(Commands.argument("target", EntityArgument.entities())
+                                .then(Commands.argument("viewer", EntityArgument.players())
                                         .executes(context -> changeVisibility(
-                                                EntityArgumentType.getEntities(context, "target"),
-                                                EntityArgumentType.getPlayers(context, "viewer"),
+                                                EntityArgument.getEntities(context, "target"),
+                                                EntityArgument.getPlayers(context, "viewer"),
                                                 false,
                                                 false,
                                                 true,
@@ -48,14 +49,14 @@ public final class VisibilityCommand {
                 );
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> perspectiveOption(
+    private static LiteralArgumentBuilder<CommandSourceStack> perspectiveOption(
             String name,
             boolean hide,
             boolean renderOutsideFirstPerson) {
-        return CommandManager.literal(name)
+        return Commands.literal(name)
                 .executes(context -> changeVisibility(
-                        EntityArgumentType.getEntities(context, "target"),
-                        EntityArgumentType.getPlayers(context, "viewer"),
+                        EntityArgument.getEntities(context, "target"),
+                        EntityArgument.getPlayers(context, "viewer"),
                         hide,
                         renderOutsideFirstPerson,
                         true,
@@ -64,15 +65,15 @@ public final class VisibilityCommand {
                 .then(passengerOption("hide_passengers", hide, renderOutsideFirstPerson, true));
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> passengerOption(
+    private static LiteralArgumentBuilder<CommandSourceStack> passengerOption(
             String name,
             boolean hide,
             boolean renderOutsideFirstPerson,
             boolean hidePassengers) {
-        return CommandManager.literal(name)
+        return Commands.literal(name)
                 .executes(context -> changeVisibility(
-                        EntityArgumentType.getEntities(context, "target"),
-                        EntityArgumentType.getPlayers(context, "viewer"),
+                        EntityArgument.getEntities(context, "target"),
+                        EntityArgument.getPlayers(context, "viewer"),
                         hide,
                         renderOutsideFirstPerson,
                         hidePassengers,
@@ -81,13 +82,13 @@ public final class VisibilityCommand {
 
     private static int changeVisibility(
             Collection<? extends Entity> targets,
-            Collection<ServerPlayerEntity> viewers,
+            Collection<ServerPlayer> viewers,
             boolean hide,
             boolean renderOutsideFirstPerson,
             boolean hidePassengers,
-            ServerCommandSource source) {
+            CommandSourceStack source) {
         int total = 0;
-        for (ServerPlayerEntity viewer : viewers) {
+        for (ServerPlayer viewer : viewers) {
             for (Entity target : targets) {
                 total += sendVisibilityUpdate(target, viewer, hide, renderOutsideFirstPerson, hidePassengers);
             }
@@ -97,8 +98,8 @@ public final class VisibilityCommand {
         String perspectiveSuffix = hide && renderOutsideFirstPerson
                 ? " (still rendered in 2nd/3rd person)"
                 : "";
-        source.sendFeedback(
-                () -> Text.literal("Visibility " + (hide ? "disabled" : "enabled") +
+        source.sendSuccess(
+                () -> Component.literal("Visibility " + (hide ? "disabled" : "enabled") +
                         " for " + finalTotal + " entit" + (finalTotal == 1 ? "y" : "ies") +
                         " across " + viewers.size() + " viewer" + (viewers.size() == 1 ? "" : "s") +
                         perspectiveSuffix),
@@ -108,7 +109,7 @@ public final class VisibilityCommand {
 
     private static int sendVisibilityUpdate(
             Entity target,
-            ServerPlayerEntity viewer,
+            ServerPlayer viewer,
             boolean hide,
             boolean renderOutsideFirstPerson,
             boolean hidePassengers) {
@@ -122,7 +123,7 @@ public final class VisibilityCommand {
             return count;
         }
 
-        for (Entity passenger : target.getPassengerList()) {
+        for (Entity passenger : target.getPassengers()) {
             count += sendVisibilityUpdate(passenger, viewer, hide, renderOutsideFirstPerson, true);
         }
         return count;

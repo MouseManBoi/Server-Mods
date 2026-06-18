@@ -1,6 +1,6 @@
 package net.baconeater.features.commands.attack;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,26 +14,26 @@ public final class AttackState {
     }
 
     public static void disable(Entity entity) {
-        DISABLED_ATTACKERS.add(entity.getUuid());
+        DISABLED_ATTACKERS.add(entity.getUUID());
     }
 
     public static void enable(Entity entity) {
-        DISABLED_ATTACKERS.remove(entity.getUuid());
+        DISABLED_ATTACKERS.remove(entity.getUUID());
     }
 
     public static boolean isDisabled(Entity entity) {
-        return DISABLED_ATTACKERS.contains(entity.getUuid());
+        return DISABLED_ATTACKERS.contains(entity.getUUID());
     }
 
     public static void setHurtTintDisabled(Entity entity, boolean disabled) {
         if (disabled) {
-            DISABLED_HURT_TINTS.add(entity.getUuid());
+            DISABLED_HURT_TINTS.add(entity.getUUID());
         } else {
-            DISABLED_HURT_TINTS.remove(entity.getUuid());
+            DISABLED_HURT_TINTS.remove(entity.getUUID());
         }
     }
 
     public static boolean isHurtTintDisabled(Entity entity) {
-        return DISABLED_HURT_TINTS.contains(entity.getUuid());
+        return DISABLED_HURT_TINTS.contains(entity.getUUID());
     }
 }

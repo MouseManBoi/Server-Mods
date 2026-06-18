@@ -2,11 +2,12 @@ package net.baconeater.features.commands.attack;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.network.chat.Component;
 
 import java.util.Collection;
 
@@ -14,32 +15,32 @@ public final class AttackCommand {
     private AttackCommand() {
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("attack")
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("disable")
-                        .then(CommandManager.argument("targets", EntityArgumentType.entities())
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("attack")
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                .then(Commands.literal("disable")
+                        .then(Commands.argument("targets", EntityArgument.entities())
                                 .executes(context -> setAttackEnabled(
-                                        EntityArgumentType.getEntities(context, "targets"),
+                                        EntityArgument.getEntities(context, "targets"),
                                         false,
                                         null,
                                         context.getSource()))
-                                .then(CommandManager.argument("disableRedTint", BoolArgumentType.bool())
+                                .then(Commands.argument("disableRedTint", BoolArgumentType.bool())
                                         .executes(context -> setAttackEnabled(
-                                                EntityArgumentType.getEntities(context, "targets"),
+                                                EntityArgument.getEntities(context, "targets"),
                                                 false,
                                                 BoolArgumentType.getBool(context, "disableRedTint"),
                                                 context.getSource())))))
-                .then(CommandManager.literal("enable")
-                        .then(CommandManager.argument("targets", EntityArgumentType.entities())
+                .then(Commands.literal("enable")
+                        .then(Commands.argument("targets", EntityArgument.entities())
                                 .executes(context -> setAttackEnabled(
-                                        EntityArgumentType.getEntities(context, "targets"),
+                                        EntityArgument.getEntities(context, "targets"),
                                         true,
                                         null,
                                         context.getSource()))
-                                .then(CommandManager.argument("disableRedTint", BoolArgumentType.bool())
+                                .then(Commands.argument("disableRedTint", BoolArgumentType.bool())
                                         .executes(context -> setAttackEnabled(
-                                                EntityArgumentType.getEntities(context, "targets"),
+                                                EntityArgument.getEntities(context, "targets"),
                                                 true,
                                                 BoolArgumentType.getBool(context, "disableRedTint"),
                                                 context.getSource()))))));
@@ -49,7 +50,7 @@ public final class AttackCommand {
             Collection<? extends Entity> targets,
             boolean enabled,
             Boolean disableRedTint,
-            ServerCommandSource source) {
+            CommandSourceStack source) {
         targets.forEach(target -> {
             if (enabled) {
                 AttackState.enable(target);
@@ -61,12 +62,12 @@ public final class AttackCommand {
             }
         });
 
-        source.sendFeedback(
+        source.sendSuccess(
                 () -> {
                     String tintMessage = disableRedTint == null
                             ? ""
                             : " Red tint " + (disableRedTint ? "disabled" : "enabled") + ".";
-                    return Text.literal("Attack " + (enabled ? "enabled" : "disabled")
+                    return Component.literal("Attack " + (enabled ? "enabled" : "disabled")
                             + " for " + targets.size() + " entit" + (targets.size() == 1 ? "y" : "ies") + "."
                             + tintMessage);
                 },
