@@ -10,16 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -28,19 +22,14 @@ public final class DomainDisplaySkinAtlasManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("DomainDisplaySkinAtlas");
     private static final Identifier DOMAIN_DISPLAY = Identifier.of("minecraft", "domain_display");
     private static final Identifier DOMAIN_POPUP = Identifier.of("minecraft", "domain_popup");
-    private static final Identifier PLAYER_SAMPLER_ID = Identifier.of("minecraft", "domain_popup_player");
-    private static final Identifier PLAYER_SAMPLER_RESOURCE = Identifier.of("minecraft", "textures/effect/domain_popup_player.png");
-    private static final String BLENDER_PATH = "C:\\Program Files\\Blender Foundation\\Blender 5.1\\blender.exe";
-    private static final String FALLBACK_GLTF_PATH = "C:\\Users\\joshu\\Downloads\\Domain Expansion Popup.gltf";
+    private static final Identifier PLAYER_SAMPLER_ID = Identifier.of("minecraft", "domain_popup/domain_popup_player");
+    private static final Identifier PLAYER_SAMPLER_RESOURCE = Identifier.of("minecraft", "textures/effect/domain_popup/domain_popup_player.png");
+    private static final Identifier MODEL_RESOURCE = Identifier.of("minecraft", "models/effect/domain_popup_model.gltf");
     private static final String DOMAIN_SHADER_DIR_NAME = "domain_shader";
     private static final String FETCHED_SKIN_FILE_NAME = "fetched_skin.png";
     private static final String FALLBACK_SKIN_FILE_NAME = "fallback_skin.png";
     private static final String LEGACY_FALLBACK_SKIN_FILE_NAME = "domain_popup_fallback_skin.png";
     private static final String CURRENT_PLAYER_SKIN_FILE_NAME = "current_player_skin.png";
-    private static final String ACTIVE_SKIN_FILE_NAME = "active_skin.png";
-    private static final String ATLAS_METADATA_FILE_NAME = "active_atlas.properties";
-    private static final Duration RENDER_TIMEOUT = Duration.ofMinutes(3);
-    private static final ConcurrentMap<String, CompletableFuture<PreparedAtlas>> IN_FLIGHT = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Identifier, Long> INVALIDATED_POST_EFFECT_GENERATIONS = new ConcurrentHashMap<>();
     private static final String ATLAS_VERSION = "runtime_skin_v1";
     private static final int RUNTIME_TEXTURE_SIZE = 512;
@@ -70,7 +59,7 @@ public final class DomainDisplaySkinAtlasManager {
             migrateLegacySkinFiles(client);
             Path source = activeSkinSource(client);
             String skinHash = runtimeSkinKey(source);
-            if (skinHash.equals(registeredAtlasKey) || skinHash.equals(lastPreloadAttemptKey) || IN_FLIGHT.containsKey(skinHash)) {
+            if (skinHash.equals(registeredAtlasKey) || skinHash.equals(lastPreloadAttemptKey)) {
                 return;
             }
             lastPreloadAttemptKey = skinHash;
@@ -146,7 +135,6 @@ public final class DomainDisplaySkinAtlasManager {
     }
 
     public static void clear() {
-        IN_FLIGHT.clear();
         INVALIDATED_POST_EFFECT_GENERATIONS.clear();
         registeredAtlasKey = null;
         registeredAtlasGeneration++;
@@ -189,22 +177,117 @@ public final class DomainDisplaySkinAtlasManager {
     private static void registerRuntimeSkinTexture(MinecraftClient client, String skinKey, Path skinPath) throws IOException {
         try (InputStream stream = Files.newInputStream(skinPath)) {
             NativeImage skin = NativeImage.read(stream);
+            NativeImage renderSkin = copyRenderableSkin(skin);
             try {
                 if (!skinKey.equals(runtimeSkinKey)) {
                     if (runtimeSkinImage != null) {
                         runtimeSkinImage.close();
                     }
-                    runtimeSkinImage = new NativeImage(skin.getWidth(), skin.getHeight(), false);
-                    runtimeSkinImage.copyFrom(skin);
+                    runtimeSkinImage = new NativeImage(renderSkin.getWidth(), renderSkin.getHeight(), false);
+                    runtimeSkinImage.copyFrom(renderSkin);
                     runtimeSkinKey = skinKey;
                     animationStartNanos = System.nanoTime();
                     lastAnimationFrame = -1;
                 }
 
-                NativeImage player = renderRuntimePlayerTexture(client, skin, 0.0f);
+                NativeImage player = renderRuntimePlayerTexture(client, renderSkin, 0.0f);
                 registerAtlas(client, new PreparedAtlas(skinKey, player));
             } finally {
+                renderSkin.close();
                 skin.close();
+            }
+        }
+    }
+
+    private static NativeImage copyRenderableSkin(NativeImage skin) {
+        NativeImage renderSkin = new NativeImage(skin.getWidth(), skin.getHeight(), false);
+        renderSkin.copyFrom(skin);
+        normalizeSlimArmRegions(renderSkin);
+        return renderSkin;
+    }
+
+    private static void normalizeSlimArmRegions(NativeImage skin) {
+        if (skin.getWidth() < 64 || skin.getHeight() < 64 || !looksLikeSlimSkin(skin)) {
+            return;
+        }
+
+        NativeImage source = new NativeImage(skin.getWidth(), skin.getHeight(), false);
+        try {
+            source.copyFrom(skin);
+            expandSlimArmRegion(source, skin, 40, 16);
+            expandSlimArmRegion(source, skin, 40, 32);
+            expandSlimArmRegion(source, skin, 32, 48);
+            expandSlimArmRegion(source, skin, 48, 48);
+        } finally {
+            source.close();
+        }
+    }
+
+    private static boolean looksLikeSlimSkin(NativeImage skin) {
+        return transparentCoverage(skin, 54, 20, 2, 12) > 0.85f
+                || transparentCoverage(skin, 46, 52, 2, 12) > 0.85f;
+    }
+
+    private static float transparentCoverage(NativeImage skin, int x, int y, int width, int height) {
+        int transparent = 0;
+        int total = 0;
+        for (int yy = y; yy < y + height && yy < skin.getHeight(); yy++) {
+            for (int xx = x; xx < x + width && xx < skin.getWidth(); xx++) {
+                total++;
+                int alpha = (skin.getColorArgb(xx, yy) >>> 24) & 0xFF;
+                if (alpha < 8) {
+                    transparent++;
+                }
+            }
+        }
+        return total == 0 ? 0.0f : (float) transparent / (float) total;
+    }
+
+    private static void expandSlimArmRegion(NativeImage source, NativeImage destination, int u, int v) {
+        if (u + 15 >= source.getWidth() || v + 15 >= source.getHeight()) {
+            return;
+        }
+
+        copyRect(source, destination, u, v + 4, u, v + 4, 4, 12);
+        copyScaledRect(source, destination, u + 4, v, u + 4, v, 3, 4, 4, 4);
+        copyScaledRect(source, destination, u + 7, v, u + 8, v, 3, 4, 4, 4);
+        copyScaledRect(source, destination, u + 4, v + 4, u + 4, v + 4, 3, 12, 4, 12);
+        copyRect(source, destination, u + 7, v + 4, u + 8, v + 4, 4, 12);
+        copyScaledRect(source, destination, u + 11, v + 4, u + 12, v + 4, 3, 12, 4, 12);
+    }
+
+    private static void copyRect(
+            NativeImage source,
+            NativeImage destination,
+            int sourceX,
+            int sourceY,
+            int destinationX,
+            int destinationY,
+            int width,
+            int height) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                destination.setColorArgb(destinationX + x, destinationY + y, source.getColorArgb(sourceX + x, sourceY + y));
+            }
+        }
+    }
+
+    private static void copyScaledRect(
+            NativeImage source,
+            NativeImage destination,
+            int sourceX,
+            int sourceY,
+            int destinationX,
+            int destinationY,
+            int sourceWidth,
+            int sourceHeight,
+            int destinationWidth,
+            int destinationHeight) {
+        for (int y = 0; y < destinationHeight; y++) {
+            int sy = sourceY + Math.min(sourceHeight - 1, y * sourceHeight / destinationHeight);
+            for (int x = 0; x < destinationWidth; x++) {
+                int sx = sourceX + Math.min(sourceWidth - 1, x * sourceWidth / destinationWidth);
+                destination.setColorArgb(destinationX + x, destinationY + y, source.getColorArgb(sx, sy));
             }
         }
     }
@@ -362,24 +445,6 @@ public final class DomainDisplaySkinAtlasManager {
         }
     }
 
-    private static void copyActiveSkin(MinecraftClient client, Path skinPath, boolean logSource) throws IOException {
-        migrateLegacySkinFiles(client);
-        Path source = activeSkinSource(client);
-
-        Files.createDirectories(domainShaderDir(client));
-        Files.createDirectories(skinPath.getParent());
-        if (source.equals(legacyFallbackSkinPath(client))) {
-            Files.copy(source, fallbackSkinPath(client), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            source = fallbackSkinPath(client);
-        }
-        if (!Files.isRegularFile(skinPath) || !hashFile(source).equals(hashFile(skinPath))) {
-            Files.copy(source, skinPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
-        if (logSource) {
-            LOGGER.info("Using domain popup skin source {}", source);
-        }
-    }
-
     private static Path activeSkinSource(MinecraftClient client) throws IOException {
         Path source = currentPlayerSkinPath(client);
         if (copyCurrentPlayerSkin(client, source)) {
@@ -456,124 +521,6 @@ public final class DomainDisplaySkinAtlasManager {
         Files.deleteIfExists(temporary);
     }
 
-    private static void renderAtlas(MinecraftClient client, Path skinPath, Path atlasPath) throws IOException, InterruptedException {
-        Path blender = Path.of(BLENDER_PATH);
-        Path gltf = modelPath(client);
-        Path script = workspacePath(client).resolve("tools").resolve("render_domain_popup_atlas.py");
-        if (!Files.isRegularFile(blender) || !Files.isRegularFile(gltf) || !Files.isRegularFile(script)) {
-            LOGGER.info("Cannot render domain popup atlas; missing blender={}, gltf={}, script={}", blender, gltf, script);
-            return;
-        }
-
-        Files.createDirectories(atlasPath.getParent());
-        Path renderLog = Files.createTempFile("domain_popup_atlas_", ".log");
-        Process process = new ProcessBuilder(
-                blender.toString(),
-                "--background",
-                "--python",
-                script.toString(),
-                "--",
-                "--gltf",
-                gltf.toString(),
-                "--skin",
-                skinPath.toString(),
-                "--output",
-                atlasPath.toString(),
-                "--fps",
-                "60",
-                "--duration",
-                "2.6",
-                "--cell-size",
-                "256",
-                "--columns",
-                "16",
-                "--rows",
-                "16",
-                "--use-scene-camera",
-                "--camera-x",
-                "-2.6",
-                "--camera-y",
-                "2.9",
-                "--camera-z",
-                "1.55",
-                "--target-x",
-                "0.0",
-                "--target-y",
-                "0.0",
-                "--target-z",
-                "0.55",
-                "--ortho-scale",
-                "0.72",
-                "--model-yaw",
-                "180",
-                "--no-flip-x"
-        )
-                .redirectErrorStream(true)
-                .redirectOutput(renderLog.toFile())
-                .start();
-
-        boolean finished = process.waitFor(RENDER_TIMEOUT.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
-        if (!finished) {
-            process.destroyForcibly();
-            LOGGER.info("Domain popup atlas render timed out for {}", atlasPath);
-            Files.deleteIfExists(renderLog);
-            return;
-        }
-        String output = Files.readString(renderLog);
-        Files.deleteIfExists(renderLog);
-        if (output.contains("Using imported scene camera")
-                || output.contains("Using animated camera marker")
-                || output.contains("Using Blockbench camera marker")
-                || output.contains("Using animated camera node directly")
-                || output.contains("Using raw Blockbench camera transform")
-                || output.contains("WARNING: no real glTF/Blender camera was imported")) {
-            LOGGER.info("Domain popup atlas render: {}", output.lines()
-                    .filter(line -> line.contains("Using imported scene camera")
-                            || line.contains("Using animated camera marker")
-                            || line.contains("Using Blockbench camera marker")
-                            || line.contains("Using animated camera node directly")
-                            || line.contains("Using raw Blockbench camera transform")
-                            || line.contains("WARNING: no real glTF/Blender camera was imported"))
-                    .findFirst()
-                    .orElse("camera status unavailable"));
-        }
-        if (process.exitValue() != 0) {
-            LOGGER.info("Domain popup atlas render failed for {}", atlasPath);
-            Files.deleteIfExists(atlasPath);
-        }
-    }
-
-    private static void scheduleAtlasRegistration(MinecraftClient client, String atlasKey, Path atlasPath, Runnable action) {
-        IN_FLIGHT.computeIfAbsent(atlasKey, hash -> CompletableFuture.supplyAsync(() -> {
-            try {
-                return loadAtlas(client, hash, atlasPath);
-            } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
-        })).whenComplete((atlas, throwable) -> {
-            IN_FLIGHT.remove(atlasKey);
-            client.execute(() -> {
-                if (throwable == null && atlas != null) {
-                    registerAtlas(client, atlas);
-                    if (action != null) {
-                        action.run();
-                    }
-                    return;
-                }
-                if (throwable != null) {
-                    LOGGER.info("Could not prepare domain popup atlas {}", atlasPath, throwable);
-                }
-            });
-        });
-    }
-
-    private static PreparedAtlas loadAtlas(MinecraftClient client, String atlasKey, Path atlasPath) throws IOException {
-        copyToRunResourcePack(client, atlasKey, atlasPath);
-        try (InputStream stream = Files.newInputStream(atlasPath)) {
-            return new PreparedAtlas(atlasKey, NativeImage.read(stream));
-        }
-    }
-
     private static void registerAtlas(MinecraftClient client, PreparedAtlas atlas) {
         try {
             registerAtlas(client, atlas.image());
@@ -626,20 +573,8 @@ public final class DomainDisplaySkinAtlasManager {
         return client.runDirectory.toPath().resolve(LEGACY_FALLBACK_SKIN_FILE_NAME).toAbsolutePath().normalize();
     }
 
-    private static Path activeSkinPath(MinecraftClient client) {
-        return cacheDir(client).resolve(ACTIVE_SKIN_FILE_NAME);
-    }
-
-    private static Path atlasPath(MinecraftClient client, String skinHash) {
-        return cacheDir(client).resolve(skinHash + "_" + ATLAS_VERSION + "_atlas.png");
-    }
-
     private static String runtimeSkinKey(Path skinPath) throws IOException {
         return hashFile(skinPath) + "_" + ATLAS_VERSION;
-    }
-
-    private static Path atlasMetadataPath(MinecraftClient client) {
-        return cacheDir(client).resolve(ATLAS_METADATA_FILE_NAME);
     }
 
     private static Path cacheDir(MinecraftClient client) {
@@ -663,80 +598,44 @@ public final class DomainDisplaySkinAtlasManager {
         Files.copy(source, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private static Path workspacePath(MinecraftClient client) {
-        Path runDir = client.runDirectory.toPath().toAbsolutePath().normalize();
-        Path parent = runDir.getParent();
-        return parent == null ? runDir : parent;
-    }
-
-    private static Path modelPath(MinecraftClient client) {
-        Path runModel = client.runDirectory.toPath().resolve("domain_popup_model.gltf").toAbsolutePath().normalize();
-        if (Files.isRegularFile(runModel)) {
-            return runModel;
+    private static Path modelPath(MinecraftClient client) throws IOException {
+        Path resourceModel = cachedResourceModelPath(client);
+        if (copyResourceModel(client, resourceModel)) {
+            return resourceModel;
         }
-        return Path.of(FALLBACK_GLTF_PATH);
+
+        throw new IOException("No domain popup model resource found at " + MODEL_RESOURCE);
     }
 
-    private static Path resourcePackAtlasPath(MinecraftClient client) {
-        return client.runDirectory.toPath()
-                .resolve("resourcepacks")
-                .resolve("1.21-Resource-Pack")
-                .resolve("assets")
-                .resolve("minecraft")
-                .resolve("textures")
-                .resolve("effect")
-                .resolve("domain_popup_player.png")
-                .toAbsolutePath()
-                .normalize();
+    private static boolean copyResourceModel(MinecraftClient client, Path destination) {
+        if (client == null || client.getResourceManager() == null) {
+            return false;
+        }
+
+        try (InputStream stream = client.getResourceManager()
+                .getResource(MODEL_RESOURCE)
+                .orElseThrow()
+                .getInputStream()) {
+            writeIfChanged(destination, stream.readAllBytes());
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
-    private static void copyToRunResourcePack(MinecraftClient client, String atlasKey, Path atlasPath) throws IOException {
-        Path resourcePack = client.runDirectory.toPath()
-                .resolve("resourcepacks")
-                .resolve("1.21-Resource-Pack");
-        Path looseDestination = resourcePackAtlasPath(client);
-        Files.createDirectories(looseDestination.getParent());
-        Files.copy(atlasPath, looseDestination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        writeAtlasMetadata(client, atlasKey);
-
-        Path zipPack = resourcePack.resolve("1.21-Resource-Pack.zip").toAbsolutePath().normalize();
-        if (!Files.isRegularFile(zipPack)) {
+    private static void writeIfChanged(Path destination, byte[] contents) throws IOException {
+        Files.createDirectories(destination.getParent());
+        Path temporary = destination.resolveSibling(destination.getFileName() + ".tmp");
+        Files.write(temporary, contents);
+        if (!Files.isRegularFile(destination) || !hashFile(temporary).equals(hashFile(destination))) {
+            Files.move(temporary, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             return;
         }
-        try (FileSystem zip = FileSystems.newFileSystem(URI.create("jar:" + zipPack.toUri()), Map.of())) {
-            Path zipDestination = zip.getPath(
-                    "assets",
-                    "minecraft",
-                    "textures",
-                    "effect",
-                    "domain_popup_player.png");
-            Files.createDirectories(zipDestination.getParent());
-            Files.copy(atlasPath, zipDestination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.deleteIfExists(temporary);
     }
 
-    private static void writeAtlasMetadata(MinecraftClient client, String atlasKey) throws IOException {
-        Path metadata = atlasMetadataPath(client);
-        Files.createDirectories(metadata.getParent());
-        Files.writeString(metadata, "version=" + ATLAS_VERSION + System.lineSeparator()
-                + "skinHash=" + atlasKey + System.lineSeparator());
-    }
-
-    private static boolean restoreCachedAtlasFromResourcePack(MinecraftClient client, String atlasKey, Path cachedAtlas) throws IOException {
-        Path looseAtlas = resourcePackAtlasPath(client);
-        Path metadata = atlasMetadataPath(client);
-        if (!Files.isRegularFile(looseAtlas) || !Files.isRegularFile(metadata)) {
-            return false;
-        }
-
-        String contents = Files.readString(metadata);
-        if (!contents.contains("version=" + ATLAS_VERSION) || !contents.contains("skinHash=" + atlasKey)) {
-            return false;
-        }
-
-        Files.createDirectories(cachedAtlas.getParent());
-        Files.copy(looseAtlas, cachedAtlas, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        return true;
+    private static Path cachedResourceModelPath(MinecraftClient client) {
+        return cacheDir(client).resolve("domain_popup_model.gltf").toAbsolutePath().normalize();
     }
 
     private static String hashFile(Path path) throws IOException {
